@@ -33,7 +33,7 @@ Peacock is great. It is also an extension, so it can only colour the workspace y
 | Zero runtime dependencies | ✗ | ✗ | ✗ | **✓** |
 | Works on macOS, Linux, Windows | ✓ | ✓ | ✓ | **✓** |
 
-Measured: 75 projects in **0.4 s**. No build step, no daemon, no extension host.
+Measured on an M1 Mac: **75 projects in 0.08 s**, including reading and rewriting every `settings.json`. No build step, no daemon, no extension host.
 
 ---
 
@@ -56,7 +56,7 @@ pnpm dlx hue-shift-cli --random # pnpm
 
 > The package is `hue-shift-cli` because npm rejects `hue-shift` as too similar to an existing `hueshift`. Once installed, the command is still `hue-shift`.
 
-Requires Node 18 or newer.
+Requires Node 18 or newer. Works anywhere that reads `.vscode/settings.json`: VS Code, Cursor, Windsurf, VSCodium.
 
 ---
 
@@ -267,6 +267,56 @@ npx hue-shift-cli --root . --random --seed 42 --check
 
 ---
 
+## FAQ
+
+**Does it work alongside Peacock?**
+Yes. Both write the same `workbench.colorCustomizations` keys. hue-shift also updates `peacock.color` if that setting exists, so Peacock does not fight back when it activates.
+
+**Will it overwrite my own colour customizations?**
+No. It merges. Only the keys listed in [What it writes](#what-it-writes) are touched; anything else in `workbench.colorCustomizations` stays.
+
+**How do I undo it?**
+```bash
+npx hue-shift-cli --root ~/projects --reset
+```
+Removes only the keys hue-shift wrote. Your other settings, comments, and line endings survive.
+
+**Why is the npm package called `hue-shift-cli`?**
+npm rejects `hue-shift` as too similar to an existing `hueshift` package. The command it installs is still `hue-shift`.
+
+**Two projects got the same colour. Why?**
+The wheel holds 16 hues at 22° apart. Past 16 projects the gap shrinks, and near-identical colours are possible. Use `--color` per project if you need exact control.
+
+**Do I have to run it every time I open a project?**
+No. It writes to `settings.json`, which VS Code reads on startup. Run it once per project, or again when you add projects.
+
+**Does it work over SSH or in a remote window?**
+Yes, if the remote machine's filesystem is where the project lives. Run it on the remote, not locally.
+
+**Does it touch anything outside `.vscode/settings.json`?**
+No. It creates that file and directory if missing, and nothing else.
+
+---
+
+## Troubleshooting
+
+**The colour did not appear.**
+Reload the window: `Cmd+Shift+P` → `Developer: Reload Window`. Settings are read at startup.
+
+**`could not parse colorCustomizations`.**
+The colour block in that project's `settings.json` is malformed. Fix the JSON, or run `--reset` to remove the block entirely.
+
+**`EACCES` or permission denied.**
+The settings file is owned by another user (common in Docker or sudo-created projects). Fix ownership, or run with the right user.
+
+**Text on the title bar is hard to read.**
+hue-shift picks black or white text automatically and keeps contrast above 4.5:1. If a theme overrides it, add that key to `exclude` in `.hue-shift.json`.
+
+**Colours changed after a `git pull`.**
+Someone committed a different `settings.json`. Re-run the same command with the same `--seed` to restore, and use `--check` in CI to catch it.
+
+---
+
 ## Development
 
 ```bash
@@ -285,6 +335,18 @@ bin/hue-shift.js  entry point
 ```
 
 86 tests covering hex parsing, HSL round trips, contrast, JSONC edge cases, BOM/CRLF preservation, merging, reset idempotence and every CLI flag.
+
+---
+
+## Contributing
+
+Bug reports, palette additions, and platform fixes are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the setup, the test commands, and what a good pull request looks like.
+
+```bash
+git clone https://github.com/aotr/hue-shift.git
+cd hue-shift
+npm test        # 86 tests, no install needed
+```
 
 ---
 
