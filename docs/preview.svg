@@ -52,7 +52,7 @@
     <rect width="270" height="150" rx="8" fill="#161a22" stroke="#232833"/>
     <path d="M0 8a8 8 0 0 1 8-8h254a8 8 0 0 1 8 8v22H0z" fill="#9f1239"/>
     <circle cx="16" cy="15" r="3.5" fill="#ffffff" opacity=".85"/>
-    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">admin</text>
+    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">admin-console</text>
     <rect x="14" y="44" width="120" height="6" rx="3" fill="#2a303d"/>
     <rect x="14" y="58" width="64" height="6" rx="3" fill="#2a303d"/>
     <rect x="14" y="72" width="106" height="6" rx="3" fill="#2a303d"/>
@@ -65,7 +65,7 @@
     <rect width="270" height="150" rx="8" fill="#161a22" stroke="#232833"/>
     <path d="M0 8a8 8 0 0 1 8-8h254a8 8 0 0 1 8 8v22H0z" fill="#c2410c"/>
     <circle cx="16" cy="15" r="3.5" fill="#ffffff" opacity=".85"/>
-    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">api</text>
+    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">payments-api</text>
     <rect x="14" y="44" width="78" height="6" rx="3" fill="#2a303d"/>
     <rect x="14" y="58" width="126" height="6" rx="3" fill="#2a303d"/>
     <rect x="14" y="72" width="92" height="6" rx="3" fill="#2a303d"/>
@@ -78,7 +78,7 @@
     <rect width="270" height="150" rx="8" fill="#161a22" stroke="#232833"/>
     <path d="M0 8a8 8 0 0 1 8-8h254a8 8 0 0 1 8 8v22H0z" fill="#4d7c0f"/>
     <circle cx="16" cy="15" r="3.5" fill="#ffffff" opacity=".85"/>
-    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">events</text>
+    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">email-worker</text>
     <rect x="14" y="44" width="104" height="6" rx="3" fill="#2a303d"/>
     <rect x="14" y="58" width="82" height="6" rx="3" fill="#2a303d"/>
     <rect x="14" y="72" width="118" height="6" rx="3" fill="#2a303d"/>

@@ -2,11 +2,11 @@
 // Mirrors the colour maths in src/colors.js so the demo never drifts from the CLI.
 
 const PROJECTS = [
-  "checkout-api", "billing-web", "design-system", "storefront",
-  "admin", "api", "events", "support-desk",
-  "web", "dashboard", "mobile", "docs",
-  "billing", "auth", "search", "notifications",
-  "analytics", "infra",
+  "checkout-api", "billing-web", "design-system", "auth-service",
+  "docs-site", "admin-console", "mobile-app", "search-index",
+  "notifications", "analytics-etl", "infra-terraform", "storefront",
+  "payments-api", "support-desk", "email-worker", "data-pipeline",
+  "gateway-proxy", "reporting-ui",
 ];
 
 const MIN_HUE_GAP = 22;
