@@ -170,12 +170,27 @@ const hueDistance = (a, b) => {
 };
 
 /**
- * Pick a random hue at least MIN_HUE_GAP away from every hue in usedHues.
+ * Pick a random hue at least MIN_HUE_GAP from every hue in usedHues.
  * Pushes the chosen hue onto usedHues and returns a #rrggbb string.
- * Falls back to the most isolated hue once the wheel is crowded.
+ *
+ * `total` is the number of colours this run needs. When the wheel can hold
+ * them all (total <= 360 / MIN_HUE_GAP), hues are placed on a jittered even
+ * grid, which guarantees the gap. Pure greedy placement cannot: it can cluster
+ * early and run out of room even when a valid arrangement exists.
+ *
+ * Past that capacity the gap is impossible, so the most isolated arc wins.
  */
-export function randomColor(usedHues, rng = Math.random) {
+export function randomColor(usedHues, rng = Math.random, total = null) {
   const between = ([lo, hi]) => lo + rng() * (hi - lo);
+
+  if (total && total > 0 && total <= Math.floor(360 / MIN_HUE_GAP)) {
+    const sector = 360 / total;
+    const jitter = rng() * Math.max(0, sector - MIN_HUE_GAP);
+    const hue = (usedHues.length * sector + jitter) % 360;
+    usedHues.push(hue);
+    return hslToHex(hue, between(SAT_RANGE), between(LIGHT_RANGE));
+  }
+
   let best = null;
   let bestGap = -1;
 
@@ -189,6 +204,20 @@ export function randomColor(usedHues, rng = Math.random) {
     if (gap > bestGap) {
       bestGap = gap;
       best = hue;
+    }
+  }
+
+  // Wheel is full: take the midpoint of the widest empty arc.
+  if (usedHues.length) {
+    const sorted = [...usedHues].sort((a, b) => a - b);
+    let widest = -1;
+    for (let i = 0; i < sorted.length; i++) {
+      const from = sorted[i];
+      const to = i + 1 < sorted.length ? sorted[i + 1] : sorted[0] + 360;
+      if (to - from > widest) {
+        widest = to - from;
+        best = (from + (to - from) / 2) % 360;
+      }
     }
   }
 

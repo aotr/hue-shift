@@ -116,20 +116,29 @@ test("mulberry32 reproduces the same stream for the same seed", () => {
   assert.notEqual(mulberry32(1)(), mulberry32(2)());
 });
 
-test("randomColor respects the minimum hue gap", () => {
-  const used = [];
-  for (let i = 0; i < 12; i++) {
-    const hex = randomColor(used);
-    assert.match(hex, /^#[0-9a-f]{6}$/);
-  }
-  // `used` holds the exact hues chosen, so no hex round-trip noise.
-  for (let i = 0; i < used.length; i++) {
-    for (let j = i + 1; j < used.length; j++) {
-      const d = Math.abs(used[i] - used[j]) % 360;
-      const gap = d > 180 ? 360 - d : d;
-      assert.ok(gap >= MIN_HUE_GAP, `hues ${i} and ${j} only ${gap.toFixed(1)} apart`);
+test("randomColor guarantees the hue gap up to wheel capacity", () => {
+  // 360 / 22 = 16 colours fit with the gap intact.
+  for (const total of [3, 8, 12, 16]) {
+    const used = [];
+    for (let i = 0; i < total; i++) {
+      const hex = randomColor(used, Math.random, total);
+      assert.match(hex, /^#[0-9a-f]{6}$/);
+    }
+    // `used` holds the exact hues chosen, so no hex round-trip noise.
+    for (let i = 0; i < used.length; i++) {
+      for (let j = i + 1; j < used.length; j++) {
+        const d = Math.abs(used[i] - used[j]) % 360;
+        const gap = d > 180 ? 360 - d : d;
+        assert.ok(gap >= MIN_HUE_GAP, `total=${total}: hues ${i} and ${j} only ${gap.toFixed(1)} apart`);
+      }
     }
   }
+});
+
+test("randomColor still spreads hues beyond wheel capacity", () => {
+  const used = [];
+  for (let i = 0; i < 40; i++) randomColor(used, Math.random, 40);
+  assert.equal(new Set(used.map((h) => Math.round(h))).size, 40, "40 projects, 40 distinct hues");
 });
 
 test("randomColor is reproducible with a seeded rng", () => {

@@ -280,7 +280,7 @@ export function run(argv, { cwd = process.cwd(), out = console.log } = {}) {
       color = normalizeColor(explicit);
       if (!color) fail(`invalid colour "${explicit}". Try --list-colors`);
     } else if (wantsRandom) {
-      color = randomColor(usedHues, rng);
+      color = randomColor(usedHues, rng, targets.length);
     } else if (cli.check) {
       // No base colour known: check runs in validate-only mode.
       color = null;

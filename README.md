@@ -150,6 +150,8 @@ javascript-yellow  #f9e64f     slate              #334155
 
 Every generated colour is checked against its foreground, so text on the title bar never drops below 4.5:1 contrast.
 
+With `--random`, up to **16 projects** get hues at least 22° apart, which keeps them clearly distinguishable. Beyond 16 the colour wheel cannot hold that gap, so hues spread as far apart as possible.
+
 ---
 
 ## Config file
