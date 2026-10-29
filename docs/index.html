@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hue-shift — one colour per VS Code project</title>
+<meta name="description" content="Give every VS Code project its own window colour from the terminal. No extension, no dependencies.">
+<meta property="og:title" content="hue-shift">
+<meta property="og:description" content="Peacock colors one workspace. hue-shift colors all of them.">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236d28d9'/><rect x='7' y='7' width='18' height='4' rx='2' fill='%23fff'/></svg>">
+</head>
+<body>
+
+<header class="top">
+  <a class="wordmark" href="./">hue&#8209;shift</a>
+  <nav>
+    <a href="#demo">demo</a>
+    <a href="#commands">commands</a>
+    <a href="#safety">safety</a>
+    <a href="https://www.npmjs.com/package/hue-shift">npm</a>
+    <a href="https://github.com/aotr/hue-shift">github</a>
+  </nav>
+</header>
+
+<main>
+
+<section class="hero">
+  <p class="eyebrow">a CLI, not an extension</p>
+  <h1>Peacock colors one workspace.<br><em>hue-shift colors all of them.</em></h1>
+  <p class="lede">
+    Point it at a folder. Every project inside gets its own window colour,
+    written straight into <code>.vscode/settings.json</code>.
+  </p>
+
+  <div class="install">
+    <code id="install-cmd">npx hue-shift --random</code>
+    <button class="copy" data-copy="npx hue-shift --random" aria-label="Copy command">copy</button>
+  </div>
+
+  <div class="stats">
+    <div><b>75</b><span>projects</span></div>
+    <div><b>0.4s</b><span>elapsed</span></div>
+    <div><b>0</b><span>dependencies</span></div>
+    <div><b>4.5:1</b><span>min contrast</span></div>
+  </div>
+</section>
+
+<section id="demo" class="demo">
+  <div class="demo-head">
+    <h2>What it looks like</h2>
+    <button class="shuffle" id="shuffle">shuffle colours</button>
+  </div>
+  <p class="hint">Eighteen projects, eighteen hues. The bar under each name is the colour VS Code paints its title bar.</p>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section id="why" class="compare">
+  <h2>The gap</h2>
+  <p class="hint">Everything else is an extension, so it can only colour the window you are already looking at.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th></th><th>Peacock</th><th>Project Colors</th><th>Multi-Workspace</th><th class="us">hue-shift</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Runs from the terminal</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
+        <tr><td><code>npx</code>, nothing to install</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
+        <tr><td>Colour all projects at once</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
+        <tr><td>Detect drift (<code>--check</code>)</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
+        <tr><td>Contrast validation</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
+        <tr><td>Colour + theme + icons</td><td class="no">✗</td><td class="no">✗</td><td class="yes">theme only</td><td class="us yes">✓</td></tr>
+        <tr><td>Zero runtime dependencies</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
+        <tr><td>macOS · Linux · Windows</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="us yes">✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="commands" class="commands">
+  <h2>Commands</h2>
+
+  <div class="cmd">
+    <p>Colour one project</p>
+    <pre><code>cd ~/code/my-app
+npx hue-shift --random</code></pre>
+  </div>
+
+  <div class="cmd">
+    <p>Colour everything under a folder, reproducibly</p>
+    <pre><code>npx hue-shift --root ~/projects --random --seed 42</code></pre>
+  </div>
+
+  <div class="cmd">
+    <p>Preview without writing</p>
+    <pre><code>npx hue-shift --root ~/projects --random --dry</code></pre>
+  </div>
+
+  <div class="cmd">
+    <p>Specific colour, title bar only</p>
+    <pre><code>npx hue-shift . --color amber --parts title</code></pre>
+  </div>
+
+  <div class="cmd">
+    <p>Colour plus a full theme</p>
+    <pre><code>npx hue-shift . --color teal --theme "Default Dark Modern" --icons Seti</code></pre>
+  </div>
+
+  <div class="cmd">
+    <p>Catch a project whose colours drifted</p>
+    <pre><code>npx hue-shift --root ~/projects --check</code></pre>
+  </div>
+</section>
+
+<section id="safety" class="safety">
+  <h2>Your settings.json is safe</h2>
+  <ul>
+    <li><b>Merged, not replaced.</b> Colour keys hue-shift does not own are preserved.</li>
+    <li><b>Comments survive.</b> JSONC <code>//</code> and <code>/* */</code> outside the colour block are untouched.</li>
+    <li><b>BOM and CRLF survive.</b> Windows line endings stay Windows line endings.</li>
+    <li><b>Peacock stays in sync.</b> If <code>peacock.color</code> exists, it is updated to match.</li>
+    <li><b><code>--reset</code> is exact.</b> It removes only the keys hue-shift wrote.</li>
+  </ul>
+</section>
+
+<section class="limits">
+  <h2>What it can't do</h2>
+  <p>A CLI is not an extension. These need the VS Code API at runtime:</p>
+  <ul>
+    <li>a status-bar colour chip</li>
+    <li>Live Share host &amp; guest colours</li>
+    <li>&ldquo;surprise me on startup&rdquo;</li>
+    <li>command palette entries</li>
+  </ul>
+  <p class="hint">Run Peacock alongside if you want them. Both write the same keys, so they don't fight.</p>
+</section>
+
+</main>
+
+<footer>
+  <span>MIT · built by <a href="https://github.com/aotr">Animesh Chakrobarty</a></span>
+  <span><a href="https://github.com/aotr/hue-shift">source</a> · <a href="https://www.npmjs.com/package/hue-shift">npm</a></span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

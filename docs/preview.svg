@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420" role="img" aria-label="Six VS Code windows, each with a different title bar colour">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a0b0e"/>
+      <stop offset="1" stop-color="#11141a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="420" fill="url(#bg)"/>
+
+  <!-- window 1 -->
+  <g transform="translate(40 44)">
+    <rect width="270" height="150" rx="8" fill="#161a22" stroke="#232833"/>
+    <path d="M0 8a8 8 0 0 1 8-8h254a8 8 0 0 1 8 8v22H0z" fill="#6d28d9"/>
+    <circle cx="16" cy="15" r="3.5" fill="#ffffff" opacity=".85"/>
+    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">checkout-api</text>
+    <rect x="14" y="44" width="86" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="58" width="120" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="72" width="64" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="86" width="102" height="6" rx="3" fill="#2a303d"/>
+    <text x="14" y="136" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#626c80">#6d28d9</text>
+  </g>
+
+  <!-- window 2 -->
+  <g transform="translate(345 44)">
+    <rect width="270" height="150" rx="8" fill="#161a22" stroke="#232833"/>
+    <path d="M0 8a8 8 0 0 1 8-8h254a8 8 0 0 1 8 8v22H0z" fill="#0f766e"/>
+    <circle cx="16" cy="15" r="3.5" fill="#ffffff" opacity=".85"/>
+    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">billing-web</text>
+    <rect x="14" y="44" width="110" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="58" width="72" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="72" width="128" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="86" width="58" height="6" rx="3" fill="#2a303d"/>
+    <text x="14" y="136" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#626c80">#0f766e</text>
+  </g>
+
+  <!-- window 3 -->
+  <g transform="translate(650 44)">
+    <rect width="270" height="150" rx="8" fill="#161a22" stroke="#232833"/>
+    <path d="M0 8a8 8 0 0 1 8-8h254a8 8 0 0 1 8 8v22H0z" fill="#b45309"/>
+    <circle cx="16" cy="15" r="3.5" fill="#ffffff" opacity=".85"/>
+    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">design-system</text>
+    <rect x="14" y="44" width="96" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="58" width="134" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="72" width="70" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="86" width="112" height="6" rx="3" fill="#2a303d"/>
+    <text x="14" y="136" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#626c80">#b45309</text>
+  </g>
+
+  <!-- window 4 -->
+  <g transform="translate(40 226)">
+    <rect width="270" height="150" rx="8" fill="#161a22" stroke="#232833"/>
+    <path d="M0 8a8 8 0 0 1 8-8h254a8 8 0 0 1 8 8v22H0z" fill="#9f1239"/>
+    <circle cx="16" cy="15" r="3.5" fill="#ffffff" opacity=".85"/>
+    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">admin</text>
+    <rect x="14" y="44" width="120" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="58" width="64" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="72" width="106" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="86" width="88" height="6" rx="3" fill="#2a303d"/>
+    <text x="14" y="136" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#626c80">#9f1239</text>
+  </g>
+
+  <!-- window 5 -->
+  <g transform="translate(345 226)">
+    <rect width="270" height="150" rx="8" fill="#161a22" stroke="#232833"/>
+    <path d="M0 8a8 8 0 0 1 8-8h254a8 8 0 0 1 8 8v22H0z" fill="#c2410c"/>
+    <circle cx="16" cy="15" r="3.5" fill="#ffffff" opacity=".85"/>
+    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">api</text>
+    <rect x="14" y="44" width="78" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="58" width="126" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="72" width="92" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="86" width="60" height="6" rx="3" fill="#2a303d"/>
+    <text x="14" y="136" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#626c80">#c2410c</text>
+  </g>
+
+  <!-- window 6 -->
+  <g transform="translate(650 226)">
+    <rect width="270" height="150" rx="8" fill="#161a22" stroke="#232833"/>
+    <path d="M0 8a8 8 0 0 1 8-8h254a8 8 0 0 1 8 8v22H0z" fill="#4d7c0f"/>
+    <circle cx="16" cy="15" r="3.5" fill="#ffffff" opacity=".85"/>
+    <text x="30" y="19" font-family="ui-monospace,Menlo,monospace" font-size="10" fill="#ffffff">events</text>
+    <rect x="14" y="44" width="104" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="58" width="82" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="72" width="118" height="6" rx="3" fill="#2a303d"/>
+    <rect x="14" y="86" width="70" height="6" rx="3" fill="#2a303d"/>
+    <text x="14" y="136" font-family="ui-monospace,Menlo,monospace" font-size="9" fill="#626c80">#4d7c0f</text>
+  </g>
+</svg>

@@ -1,0 +1,52 @@
+{
+  "name": "hue-shift",
+  "version": "1.0.0",
+  "description": "Give every VS Code project its own window colour. One command, all projects, no editor extension.",
+  "keywords": [
+    "vscode",
+    "workspace",
+    "color",
+    "colour",
+    "theme",
+    "peacock",
+    "cli",
+    "monorepo"
+  ],
+  "license": "MIT",
+  "author": "Animesh Chakrobarty",
+  "homepage": "https://aotr.github.io/hue-shift/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aotr/hue-shift.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aotr/hue-shift/issues"
+  },
+  "type": "module",
+  "bin": {
+    "hue-shift": "bin/hue-shift.js"
+  },
+  "main": "src/cli.js",
+  "exports": {
+    ".": "./src/cli.js",
+    "./colors": "./src/colors.js",
+    "./settings": "./src/settings.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "prepublishOnly": "npm test"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ]
+}

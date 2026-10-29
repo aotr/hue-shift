@@ -1,0 +1,11 @@
+{
+  "color": "teal",
+  "parts": ["title", "status"],
+  "adjust": {
+    "title": "darken"
+  },
+  "adjustPct": 8,
+  "theme": "Default Dark Modern",
+  "icons": "Seti",
+  "exclude": ["statusBar.noFolderBackground"]
+}
