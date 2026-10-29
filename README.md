@@ -1,5 +1,9 @@
 # hue-shift
 
+[![CI](https://github.com/aotr/hue-shift/actions/workflows/ci.yml/badge.svg)](https://github.com/aotr/hue-shift/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/hue-shift.svg)](https://www.npmjs.com/package/hue-shift)
+[![license](https://img.shields.io/npm/l/hue-shift.svg)](LICENSE)
+
 **Peacock colors one workspace. hue-shift colors all of them.**
 
 Give every VS Code project its own window colour from the terminal. No extension, no config file to hand-edit, no dependencies.
