@@ -1,6 +1,6 @@
 {
   "name": "hue-shift-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Give every VS Code project its own window colour. One command, all projects, no editor extension.",
   "keywords": [
     "vscode",
