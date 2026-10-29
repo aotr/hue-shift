@@ -1,15 +1,15 @@
 # hue-shift
 
 [![CI](https://github.com/aotr/hue-shift/actions/workflows/ci.yml/badge.svg)](https://github.com/aotr/hue-shift/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/hue-shift.svg)](https://www.npmjs.com/package/hue-shift)
-[![license](https://img.shields.io/npm/l/hue-shift.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/hue-shift-cli.svg)](https://www.npmjs.com/package/hue-shift-cli)
+[![license](https://img.shields.io/npm/l/hue-shift-cli.svg)](LICENSE)
 
 **Peacock colors one workspace. hue-shift colors all of them.**
 
 Give every VS Code project its own window colour from the terminal. No extension, no config file to hand-edit, no dependencies.
 
 ```bash
-npx hue-shift --random
+npx hue-shift-cli --random
 ```
 
 ![hue-shift assigning a different colour to each project](docs/preview.svg)
@@ -42,17 +42,19 @@ Measured: 75 projects in **0.4 s**. No build step, no daemon, no extension host.
 Nothing to install — run it directly:
 
 ```bash
-npx hue-shift --random
+npx hue-shift-cli --random
 ```
 
 Or install it:
 
 ```bash
-npm i -g hue-shift          # global
-npm i -D hue-shift          # per project, for npm scripts
-bunx hue-shift --random     # bun
-pnpm dlx hue-shift --random # pnpm
+npm i -g hue-shift-cli          # global: gives you the `hue-shift` command
+npm i -D hue-shift-cli          # per project, for npm scripts
+bunx hue-shift-cli --random     # bun
+pnpm dlx hue-shift-cli --random # pnpm
 ```
+
+> The package is `hue-shift-cli` because npm rejects `hue-shift` as too similar to an existing `hueshift`. Once installed, the command is still `hue-shift`.
 
 Requires Node 18 or newer.
 
@@ -64,31 +66,31 @@ Colour the project you are standing in:
 
 ```bash
 cd ~/code/my-app
-npx hue-shift --random
+npx hue-shift-cli --random
 ```
 
 Colour every project under a folder, reproducibly:
 
 ```bash
-npx hue-shift --root ~/Documents/projects --random --seed 42
+npx hue-shift-cli --root ~/Documents/projects --random --seed 42
 ```
 
 See what it would do before it does it:
 
 ```bash
-npx hue-shift --root ~/Documents/projects --random --seed 42 --dry
+npx hue-shift-cli --root ~/Documents/projects --random --seed 42 --dry
 ```
 
 Pick a specific colour and only colour the title bar:
 
 ```bash
-npx hue-shift . --color amber --parts title
+npx hue-shift-cli . --color amber --parts title
 ```
 
 Colour plus a full theme and icon set:
 
 ```bash
-npx hue-shift . --color teal --theme "Default Dark Modern" --icons Seti
+npx hue-shift-cli . --color teal --theme "Default Dark Modern" --icons Seti
 ```
 
 Reload the window (`Cmd+Shift+P` → `Developer: Reload Window`) and the colour appears.
@@ -241,10 +243,10 @@ Colours that stay put, with drift detection in CI:
 ```bash
 # once, pin a palette
 cd ~/Documents/projects
-npx hue-shift --root . --random --seed 42
+npx hue-shift-cli --root . --random --seed 42
 
 # later, after a merge or a settings sync
-npx hue-shift --root . --random --seed 42 --check
+npx hue-shift-cli --root . --random --seed 42 --check
 ```
 
 `--check` exits non-zero when a project has drifted, so it works as a pre-commit or CI guard.
@@ -282,7 +284,7 @@ src/cli.js        argument parsing and the runner
 bin/hue-shift.js  entry point
 ```
 
-83 tests covering hex parsing, HSL round trips, contrast, JSONC edge cases, BOM/CRLF preservation, merging, reset idempotence and every CLI flag.
+86 tests covering hex parsing, HSL round trips, contrast, JSONC edge cases, BOM/CRLF preservation, merging, reset idempotence and every CLI flag.
 
 ---
 

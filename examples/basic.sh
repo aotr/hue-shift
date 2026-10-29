@@ -7,7 +7,7 @@ set -euo pipefail
 cd "${1:-.}"
 echo "Colouring $(pwd)"
 
-npx hue-shift --random
+npx hue-shift-cli --random
 
 echo
 echo "Reload the VS Code window to see it:"

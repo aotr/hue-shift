@@ -65,11 +65,11 @@ CHECKS
   -v, --version            print version
 
 EXAMPLES
-  npx hue-shift --random
-  npx hue-shift --root ~/Documents/projects --random --seed 42
-  npx hue-shift . --color amber --parts title,status
-  npx hue-shift --root ~/code --check
-  npx hue-shift --root ~/code --reset`;
+  npx hue-shift-cli --random
+  npx hue-shift-cli --root ~/Documents/projects --random --seed 42
+  npx hue-shift-cli . --color amber --parts title,status
+  npx hue-shift-cli --root ~/code --check
+  npx hue-shift-cli --root ~/code --reset`;
 
 function fail(message) {
   const err = new Error(message);

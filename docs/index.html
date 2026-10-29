@@ -18,7 +18,7 @@
     <a href="#demo">demo</a>
     <a href="#commands">commands</a>
     <a href="#safety">safety</a>
-    <a href="https://www.npmjs.com/package/hue-shift">npm</a>
+    <a href="https://www.npmjs.com/package/hue-shift-cli">npm</a>
     <a href="https://github.com/aotr/hue-shift">github</a>
   </nav>
 </header>
@@ -34,9 +34,10 @@
   </p>
 
   <div class="install">
-    <code id="install-cmd">npx hue-shift --random</code>
-    <button class="copy" data-copy="npx hue-shift --random" aria-label="Copy command">copy</button>
+    <code id="install-cmd">npx hue-shift-cli --random</code>
+    <button class="copy" data-copy="npx hue-shift-cli --random" aria-label="Copy command">copy</button>
   </div>
+  <p class="hint" style="margin:-24px 0 34px">Package is <code>hue-shift-cli</code>; the command it installs is <code>hue-shift</code>.</p>
 
   <div class="stats">
     <div><b>75</b><span>projects</span></div>
@@ -83,32 +84,32 @@
   <div class="cmd">
     <p>Colour one project</p>
     <pre><code>cd ~/code/my-app
-npx hue-shift --random</code></pre>
+npx hue-shift-cli --random</code></pre>
   </div>
 
   <div class="cmd">
     <p>Colour everything under a folder, reproducibly</p>
-    <pre><code>npx hue-shift --root ~/projects --random --seed 42</code></pre>
+    <pre><code>npx hue-shift-cli --root ~/projects --random --seed 42</code></pre>
   </div>
 
   <div class="cmd">
     <p>Preview without writing</p>
-    <pre><code>npx hue-shift --root ~/projects --random --dry</code></pre>
+    <pre><code>npx hue-shift-cli --root ~/projects --random --dry</code></pre>
   </div>
 
   <div class="cmd">
     <p>Specific colour, title bar only</p>
-    <pre><code>npx hue-shift . --color amber --parts title</code></pre>
+    <pre><code>npx hue-shift-cli . --color amber --parts title</code></pre>
   </div>
 
   <div class="cmd">
     <p>Colour plus a full theme</p>
-    <pre><code>npx hue-shift . --color teal --theme "Default Dark Modern" --icons Seti</code></pre>
+    <pre><code>npx hue-shift-cli . --color teal --theme "Default Dark Modern" --icons Seti</code></pre>
   </div>
 
   <div class="cmd">
     <p>Catch a project whose colours drifted</p>
-    <pre><code>npx hue-shift --root ~/projects --check</code></pre>
+    <pre><code>npx hue-shift-cli --root ~/projects --check</code></pre>
   </div>
 </section>
 
@@ -139,7 +140,7 @@ npx hue-shift --random</code></pre>
 
 <footer>
   <span>MIT · built by <a href="https://github.com/aotr">Animesh Chakrobarty</a></span>
-  <span><a href="https://github.com/aotr/hue-shift">source</a> · <a href="https://www.npmjs.com/package/hue-shift">npm</a></span>
+  <span><a href="https://github.com/aotr/hue-shift">source</a> · <a href="https://www.npmjs.com/package/hue-shift-cli">npm</a></span>
 </footer>
 
 <script src="app.js"></script>
