@@ -360,7 +360,25 @@ export function reset(dir, opts = {}) {
     return { status: "error", removed: [], file, error: "could not parse colorCustomizations" };
   }
 
-  const removed = MANAGED_KEYS.filter((k) => Object.prototype.hasOwnProperty.call(obj, k));
+  const removed = MANAGED_KEYS.filter(
+    (k) => k !== "peacock.color" && Object.prototype.hasOwnProperty.call(obj, k),
+  );
+  const writtenColors = new Set(removed.map((k) => String(obj[k]).slice(0, 7).toLowerCase()));
+
+  // peacock.color is a root setting, not part of this block. Drop it only when
+  // it still holds a colour we wrote; if Peacock set it independently, keep it.
+  let dropPeacock = false;
+  if (opts.withPeacock !== false) {
+    try {
+      const pc = parseJsonc(text)["peacock.color"];
+      if (typeof pc === "string" && writtenColors.has(pc.slice(0, 7).toLowerCase())) {
+        dropPeacock = true;
+      }
+    } catch {
+      dropPeacock = false;
+    }
+  }
+
   for (const key of removed) delete obj[key];
 
   let next;
@@ -380,13 +398,15 @@ export function reset(dir, opts = {}) {
     next = text.slice(0, range[0]) + render(obj, 2, nl) + text.slice(range[1]);
   }
 
-  if (opts.withPeacock) next = removeKey(next, "peacock.color", nl);
+  if (dropPeacock) next = removeKey(next, "peacock.color", nl);
 
-  if (opts.dry) return { status: "dry", removed, file };
-  if (next === text) return { status: "clean", removed, file };
+  const allRemoved = dropPeacock ? [...removed, "peacock.color"] : removed;
+
+  if (opts.dry) return { status: "dry", removed: allRemoved, file };
+  if (next === text) return { status: "clean", removed: [], file };
 
   fs.writeFileSync(file, bom + next);
-  return { status: "reset", removed, file };
+  return { status: "reset", removed: allRemoved, file };
 }
 
 /**

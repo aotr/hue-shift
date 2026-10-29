@@ -341,6 +341,27 @@ test("check in validate mode reports missing when no colour exists", () => {
   assert.equal(check(dir, { color: null }).status, "missing");
 });
 
+test("reset drops peacock.color when it matches the colour we wrote", () => {
+  const dir = project('{\n  "peacock.color": "#000000"\n}\n');
+  apply(dir, { color: "#b45309" });
+  assert.equal(readJson(dir)["peacock.color"], "#b45309", "apply synced it");
+
+  const res = reset(dir);
+  assert.ok(res.removed.includes("peacock.color"));
+  assert.equal(readJson(dir)["peacock.color"], undefined);
+});
+
+test("reset keeps a peacock.color that Peacock set independently", () => {
+  const dir = project('{\n  "peacock.color": "#123456"\n}\n');
+  apply(dir, { color: "#b45309" });
+  // Simulate Peacock taking the setting back.
+  fs.writeFileSync(settingsFile(dir), readFile(dir).replace("#b45309", "#123456"));
+
+  const res = reset(dir);
+  assert.ok(!res.removed.includes("peacock.color"));
+  assert.equal(readJson(dir)["peacock.color"], "#123456", "not ours to delete");
+});
+
 test("readSettings reports the file and newline style", () => {
   const dir = project('{\r\n  "a": 1\r\n}\r\n');
   const s = readSettings(dir);
