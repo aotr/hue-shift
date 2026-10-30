@@ -61,6 +61,48 @@
   .swatch { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--line); flex: none; }
   .swatch-meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); }
 
+  .pick-row { display: grid; grid-template-columns: 46px 1fr; gap: 8px; align-items: center; margin-top: 4px; }
+  .pick-row input[type="color"] {
+    width: 46px; height: 36px; padding: 2px; margin: 0; cursor: pointer;
+    background: #0d1016; border: 1px solid var(--line); border-radius: 7px;
+  }
+  .swatches { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+  .swatches button {
+    width: 21px; height: 21px; padding: 0; border-radius: 5px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .swatches button:hover, .swatches button[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .mini-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+  .mini {
+    border: 1px solid var(--line); background: transparent; color: var(--ink-faint);
+    font-family: var(--mono); font-size: 11.5px; padding: 4px 9px; border-radius: 999px; cursor: pointer;
+  }
+  .mini:hover { color: var(--ink); border-color: var(--accent-bright); }
+  .seed-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; }
+  .seed-row .mini { margin: 0; padding: 8px 11px; }
+
+  .preview-wrap { border-top: 1px solid var(--line); padding: 18px 20px 20px; background: var(--bg-soft); }
+  .preview-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 10px; }
+  .preview {
+    border: 1px solid var(--line); border-radius: 9px; overflow: hidden;
+    max-width: 520px; font-family: var(--sans); font-size: 12px;
+  }
+  .pv-title { padding: 7px 12px; font-weight: 600; display: flex; justify-content: space-between; }
+  .pv-title small { font-family: var(--mono); font-weight: 400; opacity: 0.7; }
+  .pv-border { height: 2px; background: transparent; }
+  .pv-body { display: grid; grid-template-columns: 34px 104px 1fr; min-height: 104px; }
+  .pv-activity { display: flex; flex-direction: column; gap: 7px; align-items: center; padding: 10px 0; }
+  .pv-activity i { width: 14px; height: 14px; border-radius: 3px; background: currentColor; opacity: 0.55; }
+  .pv-sidebar {
+    padding: 9px 10px; border-right: 2px solid transparent;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+  }
+  .pv-editor { background: #0d1016; display: flex; flex-direction: column; }
+  .pv-tab { padding: 6px 10px; font-family: var(--mono); font-size: 11px; align-self: flex-start; }
+  .pv-code { padding: 10px 12px; color: #3f4757; font-family: var(--mono); font-size: 10.5px; line-height: 1.9; }
+  .pv-code b { display: block; width: 62%; height: 4px; border-radius: 2px; background: #1d222c; margin: 4px 0; }
+  .pv-status { padding: 4px 10px; font-family: var(--mono); font-size: 10px; display: flex; justify-content: space-between; }
+
   .builder-out { border-top: 1px solid var(--line); padding: 16px 20px; display: flex; gap: 12px; align-items: center; background: #0d1016; }
   .builder-out code { flex: 1; background: none; border: 0; padding: 0; font-size: 14px; overflow-x: auto; white-space: nowrap; color: var(--ink); }
   .builder-out button {
@@ -136,10 +178,17 @@
       <fieldset>
         <legend>2 · what colour</legend>
         <label><input type="radio" name="colour" value="random" checked> Random, spread apart</label>
-        <input type="text" id="seed" placeholder="seed (optional, makes it reproducible)" aria-label="Seed">
+        <div class="seed-row">
+          <input type="text" id="seed" placeholder="seed (optional, makes it reproducible)" aria-label="Seed">
+          <button class="mini" id="dice" type="button" title="Generate a random seed" aria-label="Generate a random seed">dice</button>
+        </div>
         <label><input type="radio" name="colour" value="explicit"> A specific colour</label>
-        <input type="text" id="colour" value="#6d28d9" list="palette" disabled aria-label="Colour">
+        <div class="pick-row">
+          <input type="color" id="picker" value="#6d28d9" disabled aria-label="Colour picker">
+          <input type="text" id="colour" value="#6d28d9" list="palette" disabled aria-label="Colour">
+        </div>
         <datalist id="palette"></datalist>
+        <div class="swatches" id="swatches" aria-label="Named palette"></div>
         <div class="swatch-line">
           <span class="swatch" id="swatch"></span>
           <span class="swatch-meta" id="swatch-meta"></span>
@@ -149,12 +198,21 @@
 
       <fieldset>
         <legend>3 · which parts</legend>
+        <div class="mini-row">
+          <button class="mini" type="button" data-preset-parts="default">default</button>
+          <button class="mini" type="button" data-preset-parts="all">all</button>
+          <button class="mini" type="button" data-preset-parts="none">none</button>
+        </div>
         <div class="parts" id="parts"></div>
         <div class="adjust-row" style="margin-top:14px">
           <span>shift amount</span>
           <input type="number" id="pct" value="6" min="0" max="100" step="1" aria-label="Adjust percent">
         </div>
         <div id="adjusts"></div>
+        <div class="mini-row">
+          <button class="mini" type="button" data-preset-adjust="spread">spread</button>
+          <button class="mini" type="button" data-preset-adjust="flat">flat</button>
+        </div>
       </fieldset>
 
       <fieldset>
@@ -164,11 +222,96 @@
         <label><input type="radio" name="mode" value="reset"> Reset (remove)</label>
         <label style="margin-top:12px"><input type="checkbox" id="dry"> Dry run</label>
         <label><input type="checkbox" id="json"> JSON output</label>
-        <input type="text" id="theme" placeholder="also set theme (optional)" aria-label="Theme">
-        <input type="text" id="icons" placeholder="also set icons (optional)" aria-label="Icon theme">
+        <input type="text" id="theme" list="themes" placeholder="also set theme (optional)" aria-label="Theme">
+        <datalist id="themes">
+          <option value="Default Dark Modern">
+          <option value="Default Dark+">
+          <option value="Default Light Modern">
+          <option value="Default Light+">
+          <option value="Visual Studio Dark">
+          <option value="Visual Studio Light">
+          <option value="Abyss">
+          <option value="Kimbie Dark">
+          <option value="Monokai">
+          <option value="Monokai Dimmed">
+          <option value="Quiet Light">
+          <option value="Red">
+          <option value="Solarized Dark">
+          <option value="Solarized Light">
+          <option value="Tomorrow Night Blue">
+          <option value="GitHub Dark">
+          <option value="GitHub Light">
+          <option value="One Dark Pro">
+          <option value="Dracula">
+          <option value="Nord">
+          <option value="Catppuccin Mocha">
+        </datalist>
+        <input type="text" id="icons" list="icons" placeholder="also set icons (optional)" aria-label="Icon theme">
+        <datalist id="icons">
+          <option value="Seti">
+          <option value="Material Icon Theme">
+          <option value="vscode-icons">
+          <option value="Fluent Icons">
+          <option value="Symbols">
+          <option value="None">
+        </datalist>
         <input type="text" id="exclude" placeholder="exclude keys, comma separated" aria-label="Excluded keys">
+        <select id="exclude-pick" aria-label="Add a key to exclude">
+          <option value="">add a key to exclude…</option>
+          <optgroup label="title">
+            <option>titleBar.activeBackground</option>
+            <option>titleBar.activeForeground</option>
+            <option>titleBar.inactiveBackground</option>
+            <option>titleBar.inactiveForeground</option>
+          </optgroup>
+          <optgroup label="activity">
+            <option>activityBar.background</option>
+            <option>activityBar.foreground</option>
+            <option>activityBar.inactiveForeground</option>
+            <option>activityBar.activeBackground</option>
+          </optgroup>
+          <optgroup label="status">
+            <option>statusBar.background</option>
+            <option>statusBar.foreground</option>
+            <option>statusBar.debuggingBackground</option>
+            <option>statusBar.noFolderBackground</option>
+          </optgroup>
+          <optgroup label="border">
+            <option>window.activeBorder</option>
+            <option>window.inactiveBorder</option>
+          </optgroup>
+          <optgroup label="tab">
+            <option>tab.activeBackground</option>
+            <option>tab.activeForeground</option>
+            <option>tab.activeBorderTop</option>
+          </optgroup>
+          <optgroup label="sash">
+            <option>sash.hoverBorder</option>
+          </optgroup>
+          <optgroup label="sidebar">
+            <option>sideBar.background</option>
+            <option>sideBar.foreground</option>
+          </optgroup>
+        </select>
       </fieldset>
 
+    </div>
+
+    <div class="preview-wrap">
+      <div class="preview-label">live preview</div>
+      <div class="preview">
+        <div class="pv-title" id="pv-title"><span>checkout-api</span><small>hue-shift</small></div>
+        <div class="pv-border" id="pv-border"></div>
+        <div class="pv-body">
+          <div class="pv-activity" id="pv-activity"><i></i><i></i><i></i><i></i></div>
+          <div class="pv-sidebar" id="pv-sidebar">EXPLORER</div>
+          <div class="pv-editor">
+            <div class="pv-tab" id="pv-tab">index.js</div>
+            <div class="pv-code"><b></b><b></b><b></b><b></b></div>
+          </div>
+        </div>
+        <div class="pv-status" id="pv-status"><span>main*</span><span>UTF-8</span></div>
+      </div>
     </div>
 
     <div class="builder-out">
@@ -575,6 +718,44 @@ function contrast(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+const readable = (hex) => (contrast(hex, "#000000") > contrast(hex, "#ffffff") ? "#000000" : "#ffffff");
+
+function hslToHex(h, s, l) {
+  s /= 100;
+  l /= 100;
+  const k = (n) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  const to = (x) => Math.round(255 * x).toString(16).padStart(2, "0");
+  return `#${to(f(0))}${to(f(8))}${to(f(4))}`;
+}
+
+function hexToHsl(hex) {
+  let { r, g, b } = parseColor(hex);
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  return { h, s: s * 100, l: l * 100 };
+}
+
+function adjustHex(hex, mode, pct) {
+  if (mode !== "lighten" && mode !== "darken") return hex;
+  const { h, s, l } = hexToHsl(hex);
+  const next = Math.min(100, Math.max(0, l + (mode === "lighten" ? pct : -pct)));
+  return hslToHex(h, s, next);
+}
+
 // --- build the command ---
 function build() {
   const bits = ["npx hue-shift-cli"];
@@ -591,19 +772,24 @@ function build() {
     }
 
     const parts = PARTS.filter((p) => state.parts.has(p));
-    if (parts.length && parts.join(",") !== DEFAULTS.join(",")) bits.push("--parts", parts.join(","));
+    if (state.colourMode !== "validate") {
+      if (!parts.length) bits.push("--parts", '""');
+      else if (parts.join(",") !== DEFAULTS.join(",")) bits.push("--parts", parts.join(","));
 
-    const adj = Object.entries(state.adjust).filter(([p, m]) => m !== "none" && state.parts.has(p));
-    if (adj.length) {
-      bits.push("--adjust", adj.map(([p, m]) => `${p}=${m}`).join(","));
-      if (Number(state.pct) !== 6) bits.push("--adjust-pct", String(state.pct));
+      const adj = Object.entries(state.adjust).filter(([p, m]) => m !== "none" && state.parts.has(p));
+      if (adj.length) {
+        bits.push("--adjust", adj.map(([p, m]) => `${p}=${m}`).join(","));
+        if (Number(state.pct) !== 6) bits.push("--adjust-pct", String(state.pct));
+      }
     }
 
-    if (state.theme) bits.push("--theme", quote(state.theme));
-    if (state.icons) bits.push("--icons", quote(state.icons));
+    if (state.mode === "apply") {
+      if (state.theme) bits.push("--theme", quote(state.theme));
+      if (state.icons) bits.push("--icons", quote(state.icons));
+    }
   }
 
-  if (state.mode !== "reset") {
+  if (state.mode !== "reset" && state.colourMode !== "validate") {
     for (const key of state.exclude.split(",").map((s) => s.trim()).filter(Boolean)) {
       bits.push("--exclude", key);
     }
@@ -632,24 +818,55 @@ function render() {
   const meta = $("swatch-meta");
   if (parsed) {
     const hex = toHex(parsed);
-    const fg = contrast(hex, "#ffffff") >= contrast(hex, "#000000") ? "#ffffff" : "#000000";
+    const fg = readable(hex);
     swatch.style.background = hex;
     swatch.style.borderColor = hex;
     meta.textContent = `${hex} · ${contrast(hex, fg).toFixed(2)}:1 with ${fg === "#ffffff" ? "white" : "black"} text`;
     meta.style.color = contrast(hex, fg) >= 4.5 ? "var(--ink-faint)" : "#f87171";
+    if ($("picker").value.toLowerCase() !== hex) $("picker").value = hex;
+    document.querySelectorAll("#swatches button").forEach((b) => {
+      b.setAttribute("aria-pressed", String(b.dataset.hex === hex));
+    });
   } else {
     swatch.style.background = "transparent";
     meta.textContent = state.colour ? "not a colour — try #6d28d9 or teal" : "hex or named colour";
     meta.style.color = state.colour ? "#f87171" : "var(--ink-faint)";
   }
 
+  paintPreview(parsed);
   $("note").textContent = note();
+}
+
+function paintPreview(parsed) {
+  const active = state.mode !== "reset" && parsed;
+  const base = active ? toHex(parsed) : null;
+  const pct = Number(state.pct) || 0;
+
+  const paint = (id, part) => {
+    const el = $(id);
+    const on = active && state.parts.has(part);
+    const hex = on ? adjustHex(base, state.adjust[part] || "none", pct) : "#151922";
+    el.style.background = hex;
+    el.style.color = on ? readable(hex) : "#4c5566";
+  };
+
+  paint("pv-title", "title");
+  paint("pv-activity", "activity");
+  paint("pv-sidebar", "sidebar");
+  paint("pv-tab", "tab");
+  paint("pv-status", "status");
+
+  const borderOn = active && state.parts.has("border");
+  $("pv-border").style.background = borderOn ? adjustHex(base, state.adjust.border || "none", pct) : "transparent";
+  $("pv-sidebar").style.borderRightColor =
+    active && state.parts.has("sash") ? adjustHex(base, state.adjust.sash || "none", pct) : "transparent";
 }
 
 function note() {
   if (state.mode === "reset") return "Reset removes every managed colour key and ignores parts, adjust, theme and icons.";
   if (state.mode === "check" && state.colourMode === "validate") return "Validates what is on disk: a colour exists, and its text is readable. Writes nothing.";
   if (state.mode === "check") return "Check writes nothing and exits 2 on drift.";
+  if (state.parts.size === 0) return "No parts selected — the command writes an empty colour block.";
   if (state.target === "root" && state.colourMode === "explicit") return "Heads up: --color with --root paints every project the same colour.";
   if (state.dry) return "Dry run prints the plan and writes nothing.";
   return "";
@@ -657,6 +874,7 @@ function note() {
 
 // --- wire up ---
 const partBox = $("parts");
+const partInputs = new Map();
 for (const p of PARTS) {
   const label = document.createElement("label");
   const box = document.createElement("input");
@@ -667,6 +885,7 @@ for (const p of PARTS) {
     renderAdjusts();
     render();
   });
+  partInputs.set(p, box);
   label.append(box, document.createTextNode(p));
   partBox.append(label);
 }
@@ -704,6 +923,48 @@ for (const name of Object.keys(PALETTE).sort()) {
   datalist.append(opt);
 }
 
+const swatchHost = $("swatches");
+for (const [name, hex] of Object.entries(PALETTE).sort(([a], [b]) => a.localeCompare(b))) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.dataset.hex = hex;
+  button.style.background = hex;
+  button.title = `${name} · ${hex}`;
+  button.setAttribute("aria-label", name);
+  button.addEventListener("click", () => {
+    setColour(hex);
+    document.querySelector('input[name="colour"][value="explicit"]').checked = true;
+    syncColourMode();
+    render();
+  });
+  swatchHost.append(button);
+}
+
+function setColour(value) {
+  state.colour = value;
+  $("colour").value = value;
+  const parsed = parseColor(value);
+  if (parsed) $("picker").value = toHex(parsed);
+}
+
+function syncColourMode() {
+  state.colourMode = document.querySelector('input[name="colour"]:checked').value;
+  const explicit = state.colourMode === "explicit";
+  $("colour").disabled = !explicit;
+  $("picker").disabled = !explicit;
+  $("seed").disabled = state.colourMode !== "random";
+  $("dice").disabled = state.colourMode !== "random";
+
+  // "whatever is already there" only makes sense when checking.
+  if (state.colourMode === "validate" && state.mode !== "check") {
+    state.mode = "check";
+    document.querySelector('input[name="mode"][value="check"]').checked = true;
+    document.querySelectorAll("#adjusts select, #parts input, #theme, #icons, #pct").forEach((el) => {
+      el.disabled = false;
+    });
+  }
+}
+
 document.querySelectorAll('input[name="target"]').forEach((r) =>
   r.addEventListener("change", () => {
     state.target = r.value;
@@ -715,18 +976,7 @@ document.querySelectorAll('input[name="target"]').forEach((r) =>
 
 document.querySelectorAll('input[name="colour"]').forEach((r) =>
   r.addEventListener("change", () => {
-    state.colourMode = r.value;
-    $("colour").disabled = state.colourMode !== "explicit";
-    $("seed").disabled = state.colourMode !== "random";
-
-    // "whatever is already there" only makes sense when checking.
-    if (state.colourMode === "validate" && state.mode !== "check") {
-      state.mode = "check";
-      document.querySelector('input[name="mode"][value="check"]').checked = true;
-      document.querySelectorAll("#adjusts select, #parts input, #theme, #icons, #pct").forEach((el) => {
-        el.disabled = false;
-      });
-    }
+    syncColourMode();
     render();
   }),
 );
@@ -734,23 +984,80 @@ document.querySelectorAll('input[name="colour"]').forEach((r) =>
 document.querySelectorAll('input[name="mode"]').forEach((r) =>
   r.addEventListener("change", () => {
     state.mode = r.value;
-    document.querySelectorAll("#adjusts select, #parts input, #theme, #icons, #pct").forEach((el) => {
+    if (state.mode !== "check" && state.colourMode === "validate") {
+      state.colourMode = "random";
+      document.querySelector('input[name="colour"][value="random"]').checked = true;
+    }
+    document.querySelectorAll("#adjusts select, #parts input, #theme, #icons, #pct, #exclude-pick").forEach((el) => {
       el.disabled = state.mode === "reset";
     });
+    syncColourMode();
+    if (state.mode === "reset") {
+      $("seed").disabled = true;
+      $("dice").disabled = true;
+    }
     render();
   }),
 );
 
 $("root").addEventListener("input", render);
 $("paths").addEventListener("input", render);
-$("colour").addEventListener("input", (e) => { state.colour = e.target.value; render(); });
+$("colour").addEventListener("input", (e) => {
+  state.colour = e.target.value;
+  const parsed = parseColor(state.colour);
+  if (parsed) $("picker").value = toHex(parsed);
+  render();
+});
+$("picker").addEventListener("input", (e) => {
+  setColour(e.target.value);
+  document.querySelector('input[name="colour"][value="explicit"]').checked = true;
+  syncColourMode();
+  render();
+});
 $("seed").addEventListener("input", (e) => { state.seed = e.target.value.trim(); render(); });
+$("dice").addEventListener("click", () => {
+  const seed = String(Math.floor(Math.random() * 90000) + 10000);
+  $("seed").value = seed;
+  state.seed = seed;
+  render();
+});
 $("pct").addEventListener("input", (e) => { state.pct = e.target.value; render(); });
 $("theme").addEventListener("input", (e) => { state.theme = e.target.value.trim(); render(); });
 $("icons").addEventListener("input", (e) => { state.icons = e.target.value.trim(); render(); });
 $("exclude").addEventListener("input", (e) => { state.exclude = e.target.value; render(); });
+$("exclude-pick").addEventListener("change", (e) => {
+  const key = e.target.value;
+  if (!key) return;
+  const keys = state.exclude.split(",").map((s) => s.trim()).filter(Boolean);
+  if (!keys.includes(key)) keys.push(key);
+  state.exclude = keys.join(", ");
+  $("exclude").value = state.exclude;
+  e.target.value = "";
+  render();
+});
 $("dry").addEventListener("change", (e) => { state.dry = e.target.checked; render(); });
 $("json").addEventListener("change", (e) => { state.json = e.target.checked; render(); });
+
+document.querySelectorAll("[data-preset-parts]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const preset = button.dataset.presetParts;
+    const next = preset === "all" ? PARTS : preset === "none" ? [] : DEFAULTS;
+    state.parts = new Set(next);
+    for (const [part, box] of partInputs) box.checked = state.parts.has(part);
+    renderAdjusts();
+    render();
+  });
+});
+
+document.querySelectorAll("[data-preset-adjust]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.adjust = button.dataset.presetAdjust === "flat"
+      ? {}
+      : { title: "lighten", activity: "none", status: "darken", border: "lighten", tab: "lighten", sash: "none", sidebar: "darken" };
+    renderAdjusts();
+    render();
+  });
+});
 
 $("copy").addEventListener("click", async () => {
   const btn = $("copy");
@@ -764,7 +1071,7 @@ $("copy").addEventListener("click", async () => {
   }
 });
 
-$("colour").disabled = true;
+syncColourMode();
 renderAdjusts();
 render();
 </script>
