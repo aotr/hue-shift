@@ -207,6 +207,8 @@ h2 {
 }
 .shuffle:hover { color: var(--ink); border-color: var(--accent-bright); }
 
+.demo-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));

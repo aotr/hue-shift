@@ -42,7 +42,7 @@
 
   <div class="stats">
     <div><b>75</b><span>projects</span></div>
-    <div><b>0.4s</b><span>elapsed</span></div>
+    <div><b>0.08s</b><span>elapsed</span></div>
     <div><b>0</b><span>dependencies</span></div>
     <div><b>4.5:1</b><span>min contrast</span></div>
   </div>
@@ -51,7 +51,10 @@
 <section id="demo" class="demo">
   <div class="demo-head">
     <h2>What it looks like</h2>
-    <button class="shuffle" id="shuffle">shuffle colours</button>
+    <div class="demo-actions">
+      <button class="shuffle" id="shuffle">shuffle colours</button>
+      <button class="shuffle" data-copy="npx hue-shift-cli --root ~/projects --random --seed 42" data-label="copy command" title="npx hue-shift-cli --root ~/projects --random --seed 42">copy command</button>
+    </div>
   </div>
   <p class="hint">Eighteen projects, eighteen hues. The bar under each name is the colour VS Code paints its title bar.</p>
   <div class="grid" id="grid"></div>

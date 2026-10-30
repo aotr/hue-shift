@@ -101,12 +101,13 @@ document.getElementById("shuffle").addEventListener("click", render);
 document.querySelectorAll("[data-copy]").forEach((button) => {
   button.addEventListener("click", async () => {
     const text = button.dataset.copy;
+    const label = button.dataset.label || "copy";
     try {
       await navigator.clipboard.writeText(text);
       button.textContent = "copied";
       button.classList.add("done");
       setTimeout(() => {
-        button.textContent = "copy";
+        button.textContent = label;
         button.classList.remove("done");
       }, 1400);
     } catch {
