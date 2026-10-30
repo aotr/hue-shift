@@ -296,3 +296,41 @@ test("an unreadable settings file surfaces as invalid, not a crash", () => {
   const res = cli([dir, "--check", "--json"]).json();
   assert.equal(res.results[0].status, "invalid");
 });
+
+test("--restore puts settings.json back as it was before the first apply", () => {
+  const dir = tmp();
+  const file = path.join(dir, ".vscode", "settings.json");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const original = '{\n  "editor.tabSize": 2\n}\n';
+  fs.writeFileSync(file, original);
+
+  cli([dir, "--color", "amber"]);
+  assert.notEqual(fs.readFileSync(file, "utf8"), original);
+
+  assert.equal(cli([dir, "--restore"]).code, 0);
+  assert.equal(fs.readFileSync(file, "utf8"), original);
+});
+
+test("--restore exits 2 when settings exist but there is no backup", () => {
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, ".vscode"), { recursive: true });
+  fs.writeFileSync(path.join(dir, ".vscode", "settings.json"), "{}");
+  assert.equal(cli([dir, "--restore"]).code, 2);
+});
+
+test("--restore on an untouched folder exits 0", () => {
+  assert.equal(cli([tmp(), "--restore"]).code, 0);
+});
+
+test("--restore --json reports the mode", () => {
+  const dir = tmp();
+  cli([dir, "--color", "amber"]);
+  const res = cli([dir, "--restore", "--json"]).json();
+  assert.equal(res.mode, "restore");
+  assert.equal(res.results[0].status, "restored");
+});
+
+test("--restore cannot be combined with --check or --reset", () => {
+  assert.throws(() => cli([tmp(), "--restore", "--check"]), /cannot be combined/);
+  assert.throws(() => cli([tmp(), "--restore", "--reset"]), /cannot be combined/);
+});

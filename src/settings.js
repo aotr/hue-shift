@@ -44,8 +44,79 @@ export const MANAGED_KEYS = [
 ];
 
 export const SETTINGS_RELATIVE = path.join(".vscode", "settings.json");
+export const BACKUP_RELATIVE = path.join(".vscode", ".hue-shift-backup.json");
 
 const tint = (hex, alpha) => `${hex}${alpha}`;
+
+/** Where the pre-apply copy of settings.json lives for a project. */
+const backupPath = (dir) => path.join(dir, BACKUP_RELATIVE);
+
+/**
+ * Save settings.json once, before hue-shift first changes it.
+ * The backup is base64 so BOM, CRLF and comments round-trip byte for byte.
+ */
+function ensureBackup(dir, existed) {
+  const backup = backupPath(dir);
+  if (fs.existsSync(backup)) return backup;
+
+  const settings = path.join(dir, SETTINGS_RELATIVE);
+  const payload = {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    existed,
+    settingsBase64: existed ? fs.readFileSync(settings).toString("base64") : "",
+  };
+
+  fs.mkdirSync(path.dirname(backup), { recursive: true });
+  fs.writeFileSync(backup, JSON.stringify(payload, null, 2) + "\n");
+  if (existed) {
+    // Keep the backup as private as the file it copies, where the OS allows it.
+    try { fs.chmodSync(backup, fs.statSync(settings).mode); } catch { /* Windows */ }
+  }
+  return backup;
+}
+
+/**
+ * Put settings.json back exactly as it was before the first apply.
+ * Returns { status, file, backup, existed?, error? }.
+ */
+export function restore(dir, opts = {}) {
+  const settings = path.join(dir, SETTINGS_RELATIVE);
+  const backup = backupPath(dir);
+
+  if (!fs.existsSync(backup)) {
+    // Nothing was ever written here; a project with settings but no backup
+    // is the only case worth flagging.
+    return { status: fs.existsSync(settings) ? "missing" : "clean", file: settings, backup };
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(fs.readFileSync(backup, "utf8"));
+  } catch (e) {
+    return { status: "invalid", file: settings, backup, error: e.message };
+  }
+
+  if (
+    payload.version !== 1 ||
+    typeof payload.existed !== "boolean" ||
+    typeof payload.settingsBase64 !== "string"
+  ) {
+    return { status: "invalid", file: settings, backup, error: "unrecognised backup format" };
+  }
+
+  if (opts.dry) return { status: "dry", file: settings, backup, existed: payload.existed };
+
+  if (payload.existed) {
+    fs.mkdirSync(path.dirname(settings), { recursive: true });
+    fs.writeFileSync(settings, Buffer.from(payload.settingsBase64, "base64"));
+  } else if (fs.existsSync(settings)) {
+    fs.unlinkSync(settings);
+  }
+
+  fs.unlinkSync(backup);
+  return { status: "restored", file: settings, backup, existed: payload.existed };
+}
 
 /**
  * Build the workbench.colorCustomizations object for one project.
@@ -292,6 +363,7 @@ export function apply(dir, opts) {
 
   if (!exists) {
     if (opts.dry) return { status: "dry", color: opts.color, file };
+    ensureBackup(dir, false);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     let content = `{${nl}  "workbench.colorCustomizations": ${render(colors, 2, nl)}${nl}}${nl}`;
     if (opts.theme) content = setScalar(content, "workbench.colorTheme", opts.theme, nl);
@@ -340,6 +412,7 @@ export function apply(dir, opts) {
   if (bom + next === bom + text) return { status: "unchanged", color: opts.color, file };
   if (opts.dry) return { status: "dry", color: opts.color, file };
 
+  ensureBackup(dir, true);
   fs.writeFileSync(file, bom + next);
   return { status: inserted ? "inserted" : "updated", color: opts.color, file };
 }

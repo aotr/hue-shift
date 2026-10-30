@@ -116,6 +116,11 @@ npx hue-shift-cli --random</code></pre>
     <pre><code>npx hue-shift-cli --root ~/projects --check</code></pre>
   </div>
 
+  <div class="cmd">
+    <p>Put settings.json back as it was</p>
+    <pre><code>npx hue-shift-cli --root ~/projects --restore</code></pre>
+  </div>
+
   <p class="hint" style="margin-top:28px">
     Every flag, every combination, and a command builder: <a href="cli.html">full CLI reference →</a>
   </p>
@@ -129,6 +134,7 @@ npx hue-shift-cli --random</code></pre>
     <li><b>BOM and CRLF survive.</b> Windows line endings stay Windows line endings.</li>
     <li><b>Peacock stays in sync.</b> If <code>peacock.color</code> exists, it is updated to match.</li>
     <li><b><code>--reset</code> is exact.</b> It removes only the keys hue-shift wrote.</li>
+    <li><b><code>--restore</code> is exact.</b> The first apply saves the original file; restore puts it back byte for byte.</li>
   </ul>
 </section>
 

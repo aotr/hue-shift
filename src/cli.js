@@ -20,6 +20,7 @@ import {
   DEFAULT_PARTS,
   apply,
   reset,
+  restore,
   check,
   readSettings,
   parseJsonc,
@@ -58,6 +59,7 @@ APPEARANCE
 CHECKS
   --check                  report drift, does not write
   --reset                  remove every colour key hue-shift wrote
+  --restore                put settings.json back as it was before the first apply
   --dry                    print the plan, write nothing
   --json                   machine-readable output
 
@@ -69,7 +71,8 @@ EXAMPLES
   npx hue-shift-cli --root ~/Documents/projects --random --seed 42
   npx hue-shift-cli . --color amber --parts title,status
   npx hue-shift-cli --root ~/code --check
-  npx hue-shift-cli --root ~/code --reset`;
+  npx hue-shift-cli --root ~/code --reset
+  npx hue-shift-cli --root ~/code --restore`;
 
 function fail(message) {
   const err = new Error(message);
@@ -99,6 +102,7 @@ export function parseArgs(argv) {
     seed: null,
     check: false,
     reset: false,
+    restore: false,
     dry: false,
     json: false,
     listColors: false,
@@ -114,6 +118,7 @@ export function parseArgs(argv) {
     else if (a === "--random") opts.random = true;
     else if (a === "--check") opts.check = true;
     else if (a === "--reset") opts.reset = true;
+    else if (a === "--restore") opts.restore = true;
     else if (a === "--dry") opts.dry = true;
     else if (a === "--json") opts.json = true;
     else if (a === "--root") opts.roots.push(need(argv, ++i, "--root"));
@@ -152,6 +157,7 @@ export function parseArgs(argv) {
   }
 
   if (opts.check && opts.reset) fail("--check and --reset cannot be combined");
+  if (opts.restore && (opts.check || opts.reset)) fail("--restore cannot be combined with --check or --reset");
   return opts;
 }
 
@@ -270,6 +276,12 @@ export function run(argv, { cwd = process.cwd(), out = console.log } = {}) {
   const usedHues = [];
 
   for (const [index, target] of targets.entries()) {
+    if (cli.restore) {
+      const res = restore(target.dir, { dry: cli.dry });
+      results.push({ project: target.name, dir: target.dir, status: res.status, backup: res.backup, error: res.error });
+      continue;
+    }
+
     const config = loadConfig(target.dir);
 
     const wantsRandom = cli.random || (config.random === true && cli.color === null && !cli.check);
@@ -318,19 +330,21 @@ export function run(argv, { cwd = process.cwd(), out = console.log } = {}) {
 
   const failureStatuses = cli.check
     ? ["drift", "invalid", "error", "missing"]
-    : ["error", "invalid"];
+    : cli.restore
+      ? ["invalid", "error", "missing"]
+      : ["error", "invalid"];
   const code = results.some((r) => failureStatuses.includes(r.status)) ? 2 : 0;
 
   if (cli.json) {
-    out(JSON.stringify({ version: VERSION, mode: cli.check ? "check" : cli.reset ? "reset" : "apply", results }, null, 2));
+    out(JSON.stringify({ version: VERSION, mode: cli.restore ? "restore" : cli.check ? "check" : cli.reset ? "reset" : "apply", results }, null, 2));
     return { code };
   }
 
   const w = Math.max(7, ...results.map((r) => r.project.length));
   for (const r of results) {
-    const swatch = r.color || "-------";
+    const swatch = r.color ? `${r.color}  ` : cli.restore ? "" : "-------  ";
     const extra = r.status === "drift" ? `  (${r.diffs.length} key(s) differ)` : r.removed ? `  (${r.removed.length} key(s))` : "";
-    out(`${r.project.padEnd(w)}  ${swatch}  ${r.status}${extra}`);
+    out(`${r.project.padEnd(w)}  ${swatch}${r.status}${extra}`);
   }
 
   const counts = results.reduce((acc, r) => ({ ...acc, [r.status]: (acc[r.status] || 0) + 1 }), {});

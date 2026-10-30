@@ -220,6 +220,7 @@
         <label><input type="radio" name="mode" value="apply" checked> Write the colour</label>
         <label><input type="radio" name="mode" value="check"> Check for drift</label>
         <label><input type="radio" name="mode" value="reset"> Reset (remove)</label>
+        <label><input type="radio" name="mode" value="restore"> Restore the pre-apply backup</label>
         <label style="margin-top:12px"><input type="checkbox" id="dry"> Dry run</label>
         <label><input type="checkbox" id="json"> JSON output</label>
         <input type="text" id="theme" list="themes" placeholder="also set theme (optional)" aria-label="Theme">
@@ -511,10 +512,30 @@ npx hue-shift-cli . --reset --dry</code></pre>
   </p>
   <p><code>--parts</code> and <code>--adjust</code> are ignored by reset: it removes all managed keys, not just the selected parts.</p>
 
+  <h3><code>--restore</code> — put settings.json back</h3>
+  <pre><code>npx hue-shift-cli --root ~/projects --restore
+npx hue-shift-cli . --restore --dry</code></pre>
+  <p>
+    The first time hue-shift writes a project it saves <code>.vscode/settings.json</code> to
+    <code>.vscode/.hue-shift-backup.json</code> — byte for byte, including comments, BOM and CRLF.
+    <code>--restore</code> writes that copy back and deletes the backup. If the file did not exist
+    before the first apply, restore removes it.
+  </p>
+  <p>
+    <strong>Reset vs restore:</strong> <code>--reset</code> removes hue-shift's colour keys and leaves the
+    rest of the file alone. <code>--restore</code> reverts the whole file to its pre-hue-shift state,
+    including values hue-shift overwrote. Backups start at the first apply with this version, so a project
+    coloured by an older release has no backup and reports <code>missing</code>.
+  </p>
+  <p>
+    The backup sits next to the settings file. If you commit <code>.vscode</code>, add
+    <code>.hue-shift-backup.json</code> to <code>.gitignore</code> — it is a copy of your settings.
+  </p>
+
   <h3><code>--json</code> — for scripts</h3>
   <pre><code>npx hue-shift-cli --root ~/projects --check --json</code></pre>
   <pre><code>{
-  "version": "1.0.2",
+  "version": "1.1.0",
   "mode": "check",
   "results": [
     {
@@ -527,7 +548,7 @@ npx hue-shift-cli . --reset --dry</code></pre>
     }
   ]
 }</code></pre>
-  <p>Statuses: <code>created</code>, <code>inserted</code>, <code>updated</code>, <code>unchanged</code>, <code>dry</code>, <code>ok</code>, <code>drift</code>, <code>missing</code>, <code>invalid</code>, <code>reset</code>, <code>clean</code>.</p>
+  <p>Statuses: <code>created</code>, <code>inserted</code>, <code>updated</code>, <code>unchanged</code>, <code>dry</code>, <code>ok</code>, <code>drift</code>, <code>missing</code>, <code>invalid</code>, <code>reset</code>, <code>restored</code>, <code>clean</code>.</p>
 </section>
 
 <!-- ============ CONFIG ============ -->
@@ -573,7 +594,7 @@ npx hue-shift-cli . --reset --dry</code></pre>
     <tr><th>Code</th><th>Meaning</th></tr>
     <tr><td>0</td><td>Success. Also <code>--check</code> when everything matches.</td></tr>
     <tr><td>1</td><td>Usage error: unknown flag, bad colour, bad part, missing directory.</td></tr>
-    <tr><td>2</td><td>A project failed: drift, invalid JSON, unreadable file.</td></tr>
+    <tr><td>2</td><td>A project failed: drift, invalid JSON, unreadable file, or <code>--restore</code> with no backup.</td></tr>
   </table>
   <pre><code>npx hue-shift-cli --root ~/projects --random --seed 42 --check || echo "palette drifted"</code></pre>
 </section>
@@ -607,7 +628,10 @@ npx hue-shift-cli packages/api packages/web packages/admin --random --seed 7</co
   <h3>CI guard</h3>
   <pre><code>npx hue-shift-cli --root . --random --seed 42 --check --json</code></pre>
 
-  <h3>Undo everything</h3>
+  <h3>Undo the last apply</h3>
+  <pre><code>npx hue-shift-cli --root ~/Documents/projects --restore</code></pre>
+
+  <h3>Remove colours but keep other settings</h3>
   <pre><code>npx hue-shift-cli --root ~/Documents/projects --reset</code></pre>
 
   <h3>Machine-readable report of what changed</h3>
@@ -632,12 +656,13 @@ npx hue-shift-cli packages/api packages/web packages/admin --random --seed 7</co
     <tr><td>--icons</td><td>name</td><td>Also set <code>workbench.iconTheme</code>.</td></tr>
     <tr><td>--check</td><td>—</td><td>Report drift or validate contrast. Writes nothing.</td></tr>
     <tr><td>--reset</td><td>—</td><td>Remove every managed colour key.</td></tr>
+    <tr><td>--restore</td><td>—</td><td>Put <code>settings.json</code> back as it was before the first apply.</td></tr>
     <tr><td>--dry</td><td>—</td><td>Print the plan, write nothing.</td></tr>
     <tr><td>--json</td><td>—</td><td>Machine-readable output.</td></tr>
     <tr><td>-h, --help</td><td>—</td><td>Usage text.</td></tr>
     <tr><td>-v, --version</td><td>—</td><td>Print the version.</td></tr>
   </table>
-  <p><code>--check</code> and <code>--reset</code> cannot be combined.</p>
+  <p><code>--check</code> and <code>--reset</code> cannot be combined. <code>--restore</code> cannot be combined with either.</p>
 </section>
 
 <!-- ============ ENV ============ -->
@@ -759,11 +784,12 @@ function adjustHex(hex, mode, pct) {
 // --- build the command ---
 function build() {
   const bits = ["npx hue-shift-cli"];
+  const skipsColour = state.mode === "reset" || state.mode === "restore";
 
   if (state.target === "root") bits.push("--root", quote($("root").value.trim() || "~/Documents/projects"));
   else if (state.target === "paths") bits.push(...($("paths").value.trim().split(/\s+/).filter(Boolean).map(quote) || []));
 
-  if (state.mode !== "reset") {
+  if (!skipsColour) {
     if (state.colourMode === "explicit") {
       bits.push("--color", quote(state.colour || "#6d28d9"));
     } else if (state.colourMode === "random") {
@@ -789,7 +815,7 @@ function build() {
     }
   }
 
-  if (state.mode !== "reset" && state.colourMode !== "validate") {
+  if (state.mode !== "reset" && state.mode !== "restore" && state.colourMode !== "validate") {
     for (const key of state.exclude.split(",").map((s) => s.trim()).filter(Boolean)) {
       bits.push("--exclude", key);
     }
@@ -797,6 +823,7 @@ function build() {
 
   if (state.mode === "check") bits.push("--check");
   if (state.mode === "reset") bits.push("--reset");
+  if (state.mode === "restore") bits.push("--restore");
   if (state.dry) bits.push("--dry");
   if (state.json) bits.push("--json");
 
@@ -838,7 +865,7 @@ function render() {
 }
 
 function paintPreview(parsed) {
-  const active = state.mode !== "reset" && parsed;
+  const active = state.mode !== "reset" && state.mode !== "restore" && parsed;
   const base = active ? toHex(parsed) : null;
   const pct = Number(state.pct) || 0;
 
@@ -863,6 +890,7 @@ function paintPreview(parsed) {
 }
 
 function note() {
+  if (state.mode === "restore") return "Restore puts settings.json back exactly as it was before the first apply, then deletes the backup.";
   if (state.mode === "reset") return "Reset removes every managed colour key and ignores parts, adjust, theme and icons.";
   if (state.mode === "check" && state.colourMode === "validate") return "Validates what is on disk: a colour exists, and its text is readable. Writes nothing.";
   if (state.mode === "check") return "Check writes nothing and exits 2 on drift.";
@@ -989,10 +1017,10 @@ document.querySelectorAll('input[name="mode"]').forEach((r) =>
       document.querySelector('input[name="colour"][value="random"]').checked = true;
     }
     document.querySelectorAll("#adjusts select, #parts input, #theme, #icons, #pct, #exclude-pick").forEach((el) => {
-      el.disabled = state.mode === "reset";
+      el.disabled = state.mode === "reset" || state.mode === "restore";
     });
     syncColourMode();
-    if (state.mode === "reset") {
+    if (state.mode === "reset" || state.mode === "restore") {
       $("seed").disabled = true;
       $("dice").disabled = true;
     }

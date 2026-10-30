@@ -130,10 +130,11 @@ hue-shift --root <dir> [options]     every subfolder of <dir> as a project
 |---|---|
 | `--check` | report drift; writes nothing |
 | `--reset` | remove every colour key hue-shift wrote |
+| `--restore` | put `settings.json` back as it was before the first apply |
 | `--dry` | print the plan; writes nothing |
 | `--json` | machine-readable output |
 
-Exit codes: `0` success, `1` usage error, `2` a project failed.
+Exit codes: `0` success, `1` usage error, `2` a project failed (including `--restore` with no backup).
 
 ---
 
@@ -220,6 +221,7 @@ Your `settings.json` is treated carefully:
 - **BOM and CRLF survive.** Windows line endings stay Windows line endings.
 - **Peacock stays in sync.** If `peacock.color` exists, it is updated to match.
 - **`--reset` is exact.** It removes only the keys listed above and leaves everything else.
+- **`--restore` is exact.** The first apply saves the original file to `.vscode/.hue-shift-backup.json`; restore writes it back byte for byte. If you commit `.vscode`, add `.hue-shift-backup.json` to `.gitignore` — it is a copy of your settings.
 
 ---
 
@@ -277,9 +279,13 @@ No. It merges. Only the keys listed in [What it writes](#what-it-writes) are tou
 
 **How do I undo it?**
 ```bash
+# revert settings.json to exactly what it was before the first apply
+npx hue-shift-cli --root ~/projects --restore
+
+# or just remove hue-shift's colour keys, keeping everything else
 npx hue-shift-cli --root ~/projects --reset
 ```
-Removes only the keys hue-shift wrote. Your other settings, comments, and line endings survive.
+`--restore` uses the one-time backup made before the first write. `--reset` is narrower: it removes only the keys hue-shift wrote, and leaves your other settings, comments, and line endings alone.
 
 **Why is the npm package called `hue-shift-cli`?**
 npm rejects `hue-shift` as too similar to an existing `hueshift` package. The command it installs is still `hue-shift`.
@@ -294,7 +300,7 @@ No. It writes to `settings.json`, which VS Code reads on startup. Run it once pe
 Yes, if the remote machine's filesystem is where the project lives. Run it on the remote, not locally.
 
 **Does it touch anything outside `.vscode/settings.json`?**
-No. It creates that file and directory if missing, and nothing else.
+It creates that file and directory if missing. On the first write it also saves `.vscode/.hue-shift-backup.json`, which `--restore` uses; nothing else.
 
 ---
 
@@ -334,7 +340,7 @@ src/cli.js        argument parsing and the runner
 bin/hue-shift.js  entry point
 ```
 
-86 tests covering hex parsing, HSL round trips, contrast, JSONC edge cases, BOM/CRLF preservation, merging, reset idempotence and every CLI flag.
+103 tests covering hex parsing, HSL round trips, contrast, JSONC edge cases, BOM/CRLF preservation, merging, reset/restore and every CLI flag.
 
 ---
 
@@ -345,7 +351,7 @@ Bug reports, palette additions, and platform fixes are welcome. See [CONTRIBUTIN
 ```bash
 git clone https://github.com/aotr/hue-shift.git
 cd hue-shift
-npm test        # 86 tests, no install needed
+npm test        # 103 tests, no install needed
 ```
 
 ---

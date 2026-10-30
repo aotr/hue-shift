@@ -14,8 +14,10 @@ import {
   setScalar,
   apply,
   reset,
+  restore,
   check,
   readSettings,
+  BACKUP_RELATIVE,
 } from "../src/settings.js";
 import { contrastRatio, parseColor, rgbToHsl } from "../src/colors.js";
 
@@ -368,6 +370,65 @@ test("readSettings reports the file and newline style", () => {
   assert.equal(s.exists, true);
   assert.equal(s.nl, "\r\n");
   assert.ok(s.file.endsWith(path.join(".vscode", "settings.json")));
+});
+
+test("restore puts settings.json back byte for byte", () => {
+  const original = '\uFEFF{\r\n  // keep me\r\n  "editor.tabSize": 2\r\n}\r\n';
+  const dir = project(original);
+  apply(dir, { color: "#b45309" });
+  assert.notEqual(readFile(dir), original);
+
+  const res = restore(dir);
+  assert.equal(res.status, "restored");
+  assert.equal(fs.readFileSync(settingsFile(dir), "utf8"), original);
+  assert.equal(fs.existsSync(path.join(dir, BACKUP_RELATIVE)), false, "backup consumed");
+});
+
+test("restore removes settings.json when apply created it", () => {
+  const dir = project();
+  apply(dir, { color: "#b45309" });
+  assert.ok(fs.existsSync(settingsFile(dir)));
+
+  assert.equal(restore(dir).status, "restored");
+  assert.equal(fs.existsSync(settingsFile(dir)), false);
+});
+
+test("the first apply wins; later applies keep the original backup", () => {
+  const dir = project('{\n  "editor.tabSize": 2\n}\n');
+  const original = readFile(dir);
+  apply(dir, { color: "#b45309" });
+  apply(dir, { color: "#0f766e" });
+
+  assert.equal(restore(dir).status, "restored");
+  assert.equal(readFile(dir), original);
+});
+
+test("restore is missing when settings exist but no backup does", () => {
+  assert.equal(restore(project('{\n  "a": 1\n}\n')).status, "missing");
+});
+
+test("restore is clean when there is nothing at all", () => {
+  assert.equal(restore(project()).status, "clean");
+});
+
+test("restore --dry leaves the file and backup alone", () => {
+  const dir = project('{\n  "a": 1\n}\n');
+  apply(dir, { color: "#b45309" });
+  const coloured = readFile(dir);
+
+  assert.equal(restore(dir, { dry: true }).status, "dry");
+  assert.equal(readFile(dir), coloured);
+  assert.ok(fs.existsSync(path.join(dir, BACKUP_RELATIVE)));
+});
+
+test("a corrupt backup is invalid, not destructive", () => {
+  const dir = project('{\n  "a": 1\n}\n');
+  apply(dir, { color: "#b45309" });
+  const coloured = readFile(dir);
+  fs.writeFileSync(path.join(dir, BACKUP_RELATIVE), "not json");
+
+  assert.equal(restore(dir).status, "invalid");
+  assert.equal(readFile(dir), coloured);
 });
 
 test("MANAGED_KEYS covers every part", () => {
