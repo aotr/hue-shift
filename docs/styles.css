@@ -246,6 +246,13 @@ h2 {
   color: var(--ink-faint);
 }
 .card .meta .hex { color: var(--ink-dim); }
+.card .meta .ratio { color: var(--ink-faint); }
+.card .meta .card-copy {
+  border: 0; background: none; color: var(--ink-faint); font: inherit;
+  padding: 0; cursor: pointer; margin-left: auto;
+}
+.card .meta .card-copy:hover { color: var(--accent-bright); }
+.card .meta .card-copy.done { color: #34d399; }
 
 /* ---------- comparison ---------- */
 

@@ -82,38 +82,44 @@ function render() {
 
   grid.innerHTML = cards
     .map(
-      ({ name, hex, fg }, i) => `
+      ({ name, hex, fg }, i) => {
+        const command = `npx hue-shift-cli ${name} --color "${hex}"`;
+        return `
       <div class="card" style="animation-delay:${i * 18}ms">
         <div class="bar" data-bg="${hex}" style="background:${hex};color:${fg}">
           ${name}
         </div>
         <div class="meta">
           <span class="hex">${hex}</span>
-          <span>${contrast(hex, fg).toFixed(1)}:1</span>
+          <span class="ratio" title="Contrast ratio between this bar and its text">${contrast(hex, fg).toFixed(1)}:1</span>
+          <button class="card-copy" data-copy="${command.replace(/"/g, "&quot;")}" aria-label="Copy command for ${name}">copy</button>
         </div>
-      </div>`,
+      </div>`;
+      },
     )
     .join("");
 }
 
 document.getElementById("shuffle").addEventListener("click", render);
 
-document.querySelectorAll("[data-copy]").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const text = button.dataset.copy;
-    const label = button.dataset.label || "copy";
-    try {
-      await navigator.clipboard.writeText(text);
-      button.textContent = "copied";
-      button.classList.add("done");
-      setTimeout(() => {
-        button.textContent = label;
-        button.classList.remove("done");
-      }, 1400);
-    } catch {
-      button.textContent = "select it";
-    }
-  });
+// Delegated so the buttons inside each freshly rendered card work too.
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-copy]");
+  if (!button) return;
+
+  const text = button.dataset.copy;
+  const label = button.dataset.label || "copy";
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = "copied";
+    button.classList.add("done");
+    setTimeout(() => {
+      button.textContent = label;
+      button.classList.remove("done");
+    }, 1400);
+  } catch {
+    button.textContent = "select it";
+  }
 });
 
 render();
