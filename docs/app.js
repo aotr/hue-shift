@@ -84,6 +84,7 @@ function render() {
     .map(
       ({ name, hex, fg }, i) => {
         const command = `npx hue-shift-cli ${name} --color "${hex}"`;
+        const attr = command.replace(/"/g, "&quot;");
         return `
       <div class="card" style="animation-delay:${i * 18}ms">
         <div class="bar" data-bg="${hex}" style="background:${hex};color:${fg}">
@@ -92,7 +93,7 @@ function render() {
         <div class="meta">
           <span class="hex">${hex}</span>
           <span class="ratio" title="Contrast ratio between this bar and its text">${contrast(hex, fg).toFixed(1)}:1</span>
-          <button class="card-copy" data-copy="${command.replace(/"/g, "&quot;")}" aria-label="Copy command for ${name}">copy</button>
+          <button class="card-copy" data-copy="${attr}" aria-label="Copy command for ${name}" title="Copy: ${attr}">copy</button>
         </div>
       </div>`;
       },
