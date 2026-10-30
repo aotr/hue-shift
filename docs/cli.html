@@ -188,7 +188,18 @@
           <input type="text" id="colour" value="#6d28d9" list="palette" disabled aria-label="Colour">
         </div>
         <datalist id="palette"></datalist>
-        <div class="swatches" id="swatches" aria-label="Named palette"></div>
+        <select id="palette-family" aria-label="Swatch palette">
+          <option value="hue-shift">hue-shift palette</option>
+          <option value="dracula">Dracula</option>
+          <option value="nord">Nord</option>
+          <option value="catppuccin-mocha">Catppuccin Mocha</option>
+          <option value="solarized-dark">Solarized Dark</option>
+          <option value="one-dark">One Dark</option>
+          <option value="gruvbox-dark">Gruvbox Dark</option>
+          <option value="tokyo-night">Tokyo Night</option>
+          <option value="github-dark">GitHub Dark</option>
+        </select>
+        <div class="swatches" id="swatches" aria-label="Palette swatches"></div>
         <div class="swatch-line">
           <span class="swatch" id="swatch"></span>
           <span class="swatch-meta" id="swatch-meta"></span>
@@ -400,6 +411,13 @@ npx hue-shift-cli --list-colors --json</code></pre>
     <tr><td>svelte-orange</td><td>#ff3d00</td><td>teal</td><td>#0f766e</td></tr>
     <tr><td>violet</td><td>#6d28d9</td><td>vue-green</td><td>#42b883</td></tr>
   </table>
+
+  <h3>Popular editor palettes</h3>
+  <p>
+    The builder's swatch row can switch between the built-in palette and popular editor palettes:
+    Dracula, Nord, Catppuccin Mocha, Solarized Dark, One Dark, Gruvbox Dark, Tokyo Night and GitHub Dark.
+    These are ordinary hex values, so <code>--color "#bd93f9"</code> works with no extra flag or config.
+  </p>
 
   <h3>Which colour wins</h3>
   <p>When several sources are present, the first match wins:</p>
@@ -693,6 +711,64 @@ const PALETTE = {
   violet: "#6d28d9", "vue-green": "#42b883",
 };
 
+// Popular editor palettes, as swatch shortcuts. The CLI takes any hex, so
+// these need no special support beyond this list.
+const PALETTES = {
+  "hue-shift": Object.entries(PALETTE).map(([name, hex]) => ({ name, hex })),
+  dracula: [
+    { name: "purple", hex: "#bd93f9" }, { name: "pink", hex: "#ff79c6" },
+    { name: "cyan", hex: "#8be9fd" }, { name: "green", hex: "#50fa7b" },
+    { name: "orange", hex: "#ffb86c" }, { name: "red", hex: "#ff5555" },
+    { name: "yellow", hex: "#f1fa8c" }, { name: "comment", hex: "#6272a4" },
+  ],
+  nord: [
+    { name: "frost", hex: "#88c0d0" }, { name: "blue", hex: "#81a1c1" },
+    { name: "deep blue", hex: "#5e81ac" }, { name: "red", hex: "#bf616a" },
+    { name: "orange", hex: "#d08770" }, { name: "yellow", hex: "#ebcb8b" },
+    { name: "green", hex: "#a3be8c" }, { name: "purple", hex: "#b48ead" },
+  ],
+  "catppuccin-mocha": [
+    { name: "rosewater", hex: "#f5e0dc" }, { name: "pink", hex: "#f5c2e7" },
+    { name: "mauve", hex: "#cba6f7" }, { name: "red", hex: "#f38ba8" },
+    { name: "peach", hex: "#fab387" }, { name: "yellow", hex: "#f9e2af" },
+    { name: "green", hex: "#a6e3a1" }, { name: "teal", hex: "#94e2d5" },
+    { name: "sky", hex: "#89dceb" }, { name: "blue", hex: "#89b4fa" },
+  ],
+  "solarized-dark": [
+    { name: "base03", hex: "#002b36" }, { name: "base02", hex: "#073642" },
+    { name: "base01", hex: "#586e75" }, { name: "yellow", hex: "#b58900" },
+    { name: "orange", hex: "#cb4b16" }, { name: "red", hex: "#dc322f" },
+    { name: "magenta", hex: "#d33682" }, { name: "violet", hex: "#6c71c4" },
+    { name: "blue", hex: "#268bd2" }, { name: "cyan", hex: "#2aa198" },
+    { name: "green", hex: "#859900" },
+  ],
+  "one-dark": [
+    { name: "red", hex: "#e06c75" }, { name: "orange", hex: "#d19a66" },
+    { name: "yellow", hex: "#e5c07b" }, { name: "green", hex: "#98c379" },
+    { name: "cyan", hex: "#56b6c2" }, { name: "blue", hex: "#61afef" },
+    { name: "purple", hex: "#c678dd" }, { name: "comment", hex: "#5c6370" },
+  ],
+  "gruvbox-dark": [
+    { name: "red", hex: "#fb4934" }, { name: "green", hex: "#b8bb26" },
+    { name: "yellow", hex: "#fabd2f" }, { name: "blue", hex: "#83a598" },
+    { name: "purple", hex: "#d3869b" }, { name: "aqua", hex: "#8ec07c" },
+    { name: "orange", hex: "#fe8019" }, { name: "gray", hex: "#928374" },
+  ],
+  "tokyo-night": [
+    { name: "blue", hex: "#7aa2f7" }, { name: "cyan", hex: "#7dcfff" },
+    { name: "purple", hex: "#bb9af7" }, { name: "magenta", hex: "#ff007c" },
+    { name: "red", hex: "#f7768e" }, { name: "orange", hex: "#ff9e64" },
+    { name: "yellow", hex: "#e0af68" }, { name: "green", hex: "#9ece6a" },
+    { name: "teal", hex: "#73daca" },
+  ],
+  "github-dark": [
+    { name: "blue", hex: "#58a6ff" }, { name: "green", hex: "#3fb950" },
+    { name: "yellow", hex: "#d29922" }, { name: "orange", hex: "#db6d28" },
+    { name: "red", hex: "#f85149" }, { name: "purple", hex: "#bc8cff" },
+    { name: "pink", hex: "#ff7b72" }, { name: "cyan", hex: "#39c5cf" },
+  ],
+};
+
 const PARTS = ["title", "activity", "status", "border", "tab", "sash", "sidebar"];
 const DEFAULTS = ["title", "activity", "status"];
 
@@ -700,6 +776,7 @@ const state = {
   target: "cwd",
   colourMode: "random",
   colour: "#6d28d9",
+  paletteFamily: "hue-shift",
   seed: "",
   parts: new Set(DEFAULTS),
   adjust: {},
@@ -851,9 +928,7 @@ function render() {
     meta.textContent = `${hex} · ${contrast(hex, fg).toFixed(2)}:1 with ${fg === "#ffffff" ? "white" : "black"} text`;
     meta.style.color = contrast(hex, fg) >= 4.5 ? "var(--ink-faint)" : "#f87171";
     if ($("picker").value.toLowerCase() !== hex) $("picker").value = hex;
-    document.querySelectorAll("#swatches button").forEach((b) => {
-      b.setAttribute("aria-pressed", String(b.dataset.hex === hex));
-    });
+    renderSwatchState();
   } else {
     swatch.style.background = "transparent";
     meta.textContent = state.colour ? "not a colour — try #6d28d9 or teal" : "hex or named colour";
@@ -952,20 +1027,34 @@ for (const name of Object.keys(PALETTE).sort()) {
 }
 
 const swatchHost = $("swatches");
-for (const [name, hex] of Object.entries(PALETTE).sort(([a], [b]) => a.localeCompare(b))) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.dataset.hex = hex;
-  button.style.background = hex;
-  button.title = `${name} · ${hex}`;
-  button.setAttribute("aria-label", name);
-  button.addEventListener("click", () => {
-    setColour(hex);
-    document.querySelector('input[name="colour"][value="explicit"]').checked = true;
-    syncColourMode();
-    render();
+
+function renderSwatchState() {
+  const parsed = parseColor(state.colour);
+  const hex = parsed ? toHex(parsed) : null;
+  document.querySelectorAll("#swatches button").forEach((b) => {
+    b.setAttribute("aria-pressed", String(b.dataset.hex === hex));
   });
-  swatchHost.append(button);
+}
+
+function renderSwatches() {
+  swatchHost.textContent = "";
+  const palette = PALETTES[state.paletteFamily] || PALETTES["hue-shift"];
+  for (const { name, hex } of palette) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.hex = hex;
+    button.style.background = hex;
+    button.title = `${name} · ${hex}`;
+    button.setAttribute("aria-label", `${name} ${hex}`);
+    button.addEventListener("click", () => {
+      setColour(hex);
+      document.querySelector('input[name="colour"][value="explicit"]').checked = true;
+      syncColourMode();
+      render();
+    });
+    swatchHost.append(button);
+  }
+  renderSwatchState();
 }
 
 function setColour(value) {
@@ -1030,6 +1119,11 @@ document.querySelectorAll('input[name="mode"]').forEach((r) =>
 
 $("root").addEventListener("input", render);
 $("paths").addEventListener("input", render);
+$("palette-family").addEventListener("change", (e) => {
+  state.paletteFamily = e.target.value;
+  renderSwatches();
+  render();
+});
 $("colour").addEventListener("input", (e) => {
   state.colour = e.target.value;
   const parsed = parseColor(state.colour);
@@ -1100,6 +1194,7 @@ $("copy").addEventListener("click", async () => {
 });
 
 syncColourMode();
+renderSwatches();
 renderAdjusts();
 render();
 </script>
