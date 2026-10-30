@@ -316,9 +316,14 @@ export function run(argv, { cwd = process.cwd(), out = console.log } = {}) {
     });
   }
 
+  const failureStatuses = cli.check
+    ? ["drift", "invalid", "error", "missing"]
+    : ["error", "invalid"];
+  const code = results.some((r) => failureStatuses.includes(r.status)) ? 2 : 0;
+
   if (cli.json) {
     out(JSON.stringify({ version: VERSION, mode: cli.check ? "check" : cli.reset ? "reset" : "apply", results }, null, 2));
-    return { code: results.some((r) => r.status === "error") ? 2 : 0 };
+    return { code };
   }
 
   const w = Math.max(7, ...results.map((r) => r.project.length));
@@ -332,7 +337,7 @@ export function run(argv, { cwd = process.cwd(), out = console.log } = {}) {
   const summary = Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(", ");
   out(`\n${results.length} project(s): ${summary}${cli.dry ? " (dry run, nothing written)" : ""}`);
 
-  return { code: results.some((r) => r.status === "error" || r.status === "invalid") ? 2 : 0 };
+  return { code };
 }
 
 export { NAMED_COLORS, buildCustomizations };

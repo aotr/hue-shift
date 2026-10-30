@@ -27,13 +27,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check the demo page is well formed
+      - name: Check the docs pages are well formed
         run: |
           set -euo pipefail
           test -f docs/index.html
+          test -f docs/cli.html
           test -f docs/styles.css
           test -f docs/app.js
           node --check docs/app.js
+          # The CLI page keeps its builder inline; make sure it parses.
+          node -e '
+            const fs = require("fs");
+            const html = fs.readFileSync("docs/cli.html", "utf8");
+            const m = html.match(/<script>([\s\S]*?)<\/script>/);
+            if (!m) { console.error("no inline script found"); process.exit(1); }
+            new Function(m[1]);
+            console.log("cli.html inline script parses");
+          '
 
       - uses: actions/configure-pages@v5
 

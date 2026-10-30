@@ -206,6 +206,43 @@ test("--reset removes the colour and is idempotent", () => {
   assert.equal(second.results[0].status, "clean");
 });
 
+test("--check exits non-zero on drift", () => {
+  const dir = tmp();
+  cli([dir, "--color", "amber"]);
+
+  assert.equal(cli([dir, "--color", "amber", "--check"]).code, 0, "clean is 0");
+
+  const file = path.join(dir, ".vscode", "settings.json");
+  fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace("#b45309", "#ff0000"));
+
+  assert.equal(cli([dir, "--color", "amber", "--check"]).code, 2, "drift is 2");
+  assert.equal(cli([dir, "--color", "amber", "--check", "--json"]).code, 2, "json mode too");
+});
+
+test("--check exits non-zero when a project has no colour", () => {
+  const dir = tmp();
+  assert.equal(cli([dir, "--check"]).code, 2);
+});
+
+test("--check exits non-zero on an invalid settings file", () => {
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, ".vscode"), { recursive: true });
+  fs.writeFileSync(path.join(dir, ".vscode", "settings.json"), "{ broken");
+  assert.equal(cli([dir, "--check"]).code, 2);
+});
+
+test("--reset exits 0 whether or not there was anything to remove", () => {
+  const dir = tmp();
+  cli([dir, "--color", "amber"]);
+  assert.equal(cli([dir, "--reset"]).code, 0);
+  assert.equal(cli([dir, "--reset"]).code, 0, "second run is clean, still 0");
+});
+
+test("a successful apply exits 0", () => {
+  const dir = tmp();
+  assert.equal(cli([dir, "--color", "amber"]).code, 0);
+});
+
 test("--check and --reset together is a usage error", () => {
   assert.throws(() => parseArgs(["--check", "--reset"]), /cannot be combined/);
 });

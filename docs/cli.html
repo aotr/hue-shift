@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLI reference — hue-shift</title>
+<meta name="description" content="Every hue-shift flag, every combination, and a builder that writes the command for you.">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236d28d9'/><rect x='7' y='7' width='18' height='4' rx='2' fill='%23fff'/></svg>">
+<style>
+  .doc { max-width: 900px; }
+  .doc section { padding: clamp(36px, 6vw, 64px) 0; }
+  .doc-hero { padding-top: clamp(40px, 7vw, 80px) !important; }
+  .doc h1 { font-size: clamp(30px, 5vw, 48px); }
+  .doc h3 { font-size: 17px; margin: 30px 0 8px; letter-spacing: -0.01em; }
+  .doc p { color: var(--ink-dim); }
+  .doc ul, .doc ol { color: var(--ink-dim); padding-left: 22px; }
+  .doc li { margin: 6px 0; }
+  .doc strong { color: var(--ink); }
+  .doc code { background: #161a22; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 0.9em; color: var(--ink); }
+  .doc pre code { background: none; border: 0; padding: 0; }
+  .doc table { font-size: 14px; }
+  .doc td { white-space: normal; }
+  .doc td code { white-space: nowrap; }
+
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 0; }
+  .toc a {
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px;
+    font-size: 13px; color: var(--ink-dim); text-decoration: none;
+  }
+  .toc a:hover { border-color: var(--accent-bright); color: var(--ink); text-decoration: none; }
+
+  /* builder */
+  .builder { border: 1px solid var(--line); border-radius: 12px; background: var(--bg-soft); overflow: hidden; }
+  .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
+  .builder fieldset { border: 0; margin: 0; padding: 18px 20px; background: var(--bg-soft); min-width: 0; }
+  .builder legend {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-faint); padding: 0 0 10px;
+  }
+  .builder label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-dim); margin: 7px 0; cursor: pointer; }
+  .builder input[type="radio"], .builder input[type="checkbox"] { accent-color: var(--accent-bright); margin: 0; }
+  .builder input[type="text"], .builder input[type="number"], .builder select {
+    width: 100%; background: #0d1016; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 7px; padding: 8px 10px; font-family: var(--mono); font-size: 13px; margin: 4px 0 2px;
+  }
+  .builder input:disabled, .builder select:disabled { opacity: 0.4; }
+  .builder input:focus, .builder select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .parts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .parts label {
+    margin: 0; border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px;
+    font-family: var(--mono); font-size: 12px; gap: 6px;
+  }
+  .parts label:has(input:checked) { border-color: var(--accent-bright); color: var(--ink); background: #17112a; }
+
+  .adjust-row { display: grid; grid-template-columns: 1fr 96px; gap: 8px; align-items: center; margin: 6px 0; }
+  .adjust-row span { font-family: var(--mono); font-size: 12.5px; color: var(--ink-dim); }
+
+  .swatch-line { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .swatch { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--line); flex: none; }
+  .swatch-meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); }
+
+  .builder-out { border-top: 1px solid var(--line); padding: 16px 20px; display: flex; gap: 12px; align-items: center; background: #0d1016; }
+  .builder-out code { flex: 1; background: none; border: 0; padding: 0; font-size: 14px; overflow-x: auto; white-space: nowrap; color: var(--ink); }
+  .builder-out button {
+    border: 1px solid var(--line); background: transparent; color: var(--ink-dim);
+    font-family: var(--mono); font-size: 12px; padding: 7px 14px; border-radius: 7px; cursor: pointer; flex: none;
+  }
+  .builder-out button:hover { color: var(--ink); border-color: var(--accent-bright); }
+  .builder-out button.done { color: #34d399; border-color: #34d399; }
+  .builder-note { padding: 0 20px 16px; font-size: 12.5px; color: var(--ink-faint); background: #0d1016; }
+
+  .keys { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .keys th, .keys td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  .keys th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 500; }
+  .keys td:first-child { font-family: var(--mono); font-size: 12.5px; color: var(--ink); white-space: nowrap; }
+
+  .callout { border-left: 2px solid var(--accent-bright); padding: 2px 0 2px 16px; margin: 18px 0; }
+  .callout p { margin: 4px 0; }
+
+  @media (max-width: 720px) {
+    .builder-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="wordmark" href="./">hue&#8209;shift</a>
+  <nav>
+    <a href="./">home</a>
+    <a href="cli.html" aria-current="page">cli</a>
+    <a href="https://www.npmjs.com/package/hue-shift-cli">npm</a>
+    <a href="https://github.com/aotr/hue-shift">github</a>
+  </nav>
+</header>
+
+<main class="doc">
+
+<section class="doc-hero">
+  <p class="eyebrow">reference</p>
+  <h1>The CLI, in full.</h1>
+  <p class="lede">Every flag, how they combine, and a builder that writes the command for you.</p>
+  <div class="toc">
+    <a href="#builder">builder</a>
+    <a href="#targets">targets</a>
+    <a href="#colour">colour</a>
+    <a href="#parts">parts</a>
+    <a href="#adjust">adjust</a>
+    <a href="#modes">modes</a>
+    <a href="#config">config</a>
+    <a href="#exit">exit codes</a>
+    <a href="#recipes">recipes</a>
+    <a href="#flags">all flags</a>
+  </div>
+</section>
+
+<!-- ============ BUILDER ============ -->
+<section id="builder">
+  <h2>Command builder</h2>
+  <p>Pick what you want. The command updates as you go.</p>
+
+  <div class="builder">
+    <div class="builder-grid">
+
+      <fieldset>
+        <legend>1 · which projects</legend>
+        <label><input type="radio" name="target" value="cwd" checked> Current directory</label>
+        <label><input type="radio" name="target" value="root"> Every folder inside…</label>
+        <input type="text" id="root" value="~/Documents/projects" disabled aria-label="Root folder">
+        <label><input type="radio" name="target" value="paths"> Specific folders</label>
+        <input type="text" id="paths" value="./app-one ./app-two" disabled aria-label="Project paths">
+      </fieldset>
+
+      <fieldset>
+        <legend>2 · what colour</legend>
+        <label><input type="radio" name="colour" value="random" checked> Random, spread apart</label>
+        <input type="text" id="seed" placeholder="seed (optional, makes it reproducible)" aria-label="Seed">
+        <label><input type="radio" name="colour" value="explicit"> A specific colour</label>
+        <input type="text" id="colour" value="#6d28d9" list="palette" disabled aria-label="Colour">
+        <datalist id="palette"></datalist>
+        <div class="swatch-line">
+          <span class="swatch" id="swatch"></span>
+          <span class="swatch-meta" id="swatch-meta"></span>
+        </div>
+        <label style="margin-top:10px"><input type="radio" name="colour" value="validate"> Whatever is already there (check only)</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>3 · which parts</legend>
+        <div class="parts" id="parts"></div>
+        <div class="adjust-row" style="margin-top:14px">
+          <span>shift amount</span>
+          <input type="number" id="pct" value="6" min="0" max="100" step="1" aria-label="Adjust percent">
+        </div>
+        <div id="adjusts"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>4 · what to do</legend>
+        <label><input type="radio" name="mode" value="apply" checked> Write the colour</label>
+        <label><input type="radio" name="mode" value="check"> Check for drift</label>
+        <label><input type="radio" name="mode" value="reset"> Reset (remove)</label>
+        <label style="margin-top:12px"><input type="checkbox" id="dry"> Dry run</label>
+        <label><input type="checkbox" id="json"> JSON output</label>
+        <input type="text" id="theme" placeholder="also set theme (optional)" aria-label="Theme">
+        <input type="text" id="icons" placeholder="also set icons (optional)" aria-label="Icon theme">
+        <input type="text" id="exclude" placeholder="exclude keys, comma separated" aria-label="Excluded keys">
+      </fieldset>
+
+    </div>
+
+    <div class="builder-out">
+      <code id="cmd">npx hue-shift-cli --random</code>
+      <button id="copy">copy</button>
+    </div>
+    <div class="builder-note" id="note"></div>
+  </div>
+</section>
+
+<!-- ============ TARGETS ============ -->
+<section id="targets">
+  <h2>Which projects get coloured</h2>
+  <p>There are three ways to say what to colour. They can be combined.</p>
+
+  <h3>No argument — the current directory</h3>
+  <pre><code>cd ~/code/my-app
+npx hue-shift-cli --random</code></pre>
+  <p>One project. The folder you are standing in.</p>
+
+  <h3><code>--root &lt;dir&gt;</code> — every folder inside</h3>
+  <pre><code>npx hue-shift-cli --root ~/Documents/projects --random --seed 42</code></pre>
+  <p>
+    Every immediate subfolder becomes a project. Hidden folders (<code>.git</code>, <code>.config</code>) and
+    <code>node_modules</code> are skipped. Results are sorted by name, so the same seed always maps to the same project.
+    Scanning is one level deep — nested packages need their own run or an explicit path.
+  </p>
+
+  <h3>Positional paths — name them exactly</h3>
+  <pre><code>npx hue-shift-cli ./api ./web ./admin --random</code></pre>
+  <p>Each path is one project. Use this when the projects are not siblings.</p>
+
+  <h3>Combining them</h3>
+  <pre><code>npx hue-shift-cli --root ~/code ~/scratch/experiment --random</code></pre>
+  <p>
+    Targets are de-duplicated by absolute path, so listing a folder twice colours it once.
+    <code>~</code> is expanded. A path that is not a directory is a usage error.
+  </p>
+
+  <div class="callout">
+    <p><strong>Watch out:</strong> <code>--color</code> with <code>--root</code> paints <em>every</em> project the same colour. To give each one a different colour, use <code>--random</code>.</p>
+  </div>
+</section>
+
+<!-- ============ COLOUR ============ -->
+<section id="colour">
+  <h2>Choosing a colour</h2>
+
+  <h3>Random, but never muddy</h3>
+  <pre><code>npx hue-shift-cli --root ~/projects --random --seed 42</code></pre>
+  <p>
+    Hues are placed on a jittered even grid, at least 22° apart, with saturation 55–78% and lightness 25–38%.
+    That band keeps white or black text readable on the bar. The wheel holds 16 hues at that spacing; past 16
+    projects the gap shrinks and the tool takes the widest empty arc.
+  </p>
+  <p><code>--seed &lt;n&gt;</code> makes the sequence reproducible. Same seed, same folders, same colours — on any machine.</p>
+
+  <h3>One exact colour</h3>
+  <pre><code>npx hue-shift-cli . --color "#6d28d9"
+npx hue-shift-cli . --color 6d28d9
+npx hue-shift-cli . --color "#0af"
+npx hue-shift-cli . --color teal</code></pre>
+  <table class="keys">
+    <tr><th>Input</th><th>Accepted</th></tr>
+    <tr><td><code>#rrggbb</code></td><td>Six digits, with or without <code>#</code>, any case</td></tr>
+    <tr><td><code>#rgb</code></td><td>Shorthand, expanded</td></tr>
+    <tr><td><code>#rrggbbaa</code></td><td>Alpha is dropped — VS Code bars are opaque</td></tr>
+    <tr><td><code>name</code></td><td>One of the 20 built-in names, case-insensitive</td></tr>
+  </table>
+  <p>Anything else is a usage error, and nothing is written.</p>
+
+  <h3>The built-in palette</h3>
+  <pre><code>npx hue-shift-cli --list-colors
+npx hue-shift-cli --list-colors --json</code></pre>
+  <table class="keys">
+    <tr><th>Name</th><th>Hex</th><th>Name</th><th>Hex</th></tr>
+    <tr><td>amber</td><td>#b45309</td><td>magenta</td><td>#a21caf</td></tr>
+    <tr><td>angular-red</td><td>#dd0531</td><td>mandalorian-blue</td><td>#1857a4</td></tr>
+    <tr><td>azure-blue</td><td>#007fff</td><td>node-green</td><td>#215732</td></tr>
+    <tr><td>burnt-orange</td><td>#c2410c</td><td>olive</td><td>#4d7c0f</td></tr>
+    <tr><td>crimson</td><td>#9f1239</td><td>peacock-blue</td><td>#0f4c81</td></tr>
+    <tr><td>cyan</td><td>#0e7490</td><td>react-blue</td><td>#61dafb</td></tr>
+    <tr><td>green</td><td>#15803d</td><td>rose</td><td>#be123c</td></tr>
+    <tr><td>javascript-yellow</td><td>#f9e64f</td><td>slate</td><td>#334155</td></tr>
+    <tr><td>svelte-orange</td><td>#ff3d00</td><td>teal</td><td>#0f766e</td></tr>
+    <tr><td>violet</td><td>#6d28d9</td><td>vue-green</td><td>#42b883</td></tr>
+  </table>
+
+  <h3>Which colour wins</h3>
+  <p>When several sources are present, the first match wins:</p>
+  <ol>
+    <li><code>--color</code> on the command line</li>
+    <li><code>color</code> in the project's <code>.hue-shift.json</code></li>
+    <li><code>color</code> in <code>~/.hue-shift.json</code></li>
+    <li><code>--random</code>, or <code>random: true</code> in a config file</li>
+    <li>A stable colour derived from the project's position in the sorted list</li>
+  </ol>
+  <p><code>--seed</code> only affects the random step. Without <code>--random</code> it does nothing.</p>
+</section>
+
+<!-- ============ PARTS ============ -->
+<section id="parts">
+  <h2>Which parts of the window</h2>
+  <pre><code>npx hue-shift-cli . --color teal --parts title,status</code></pre>
+  <p>Default is <code>title,activity,status</code>. Each part owns a fixed set of keys:</p>
+  <table class="keys">
+    <tr><th>Part</th><th>Keys written</th></tr>
+    <tr><td>title</td><td>titleBar.activeBackground, titleBar.activeForeground, titleBar.inactiveBackground, titleBar.inactiveForeground</td></tr>
+    <tr><td>activity</td><td>activityBar.background, activityBar.foreground, activityBar.inactiveForeground, activityBar.activeBackground</td></tr>
+    <tr><td>status</td><td>statusBar.background, statusBar.foreground, statusBar.debuggingBackground, statusBar.noFolderBackground</td></tr>
+    <tr><td>border</td><td>window.activeBorder, window.inactiveBorder</td></tr>
+    <tr><td>tab</td><td>tab.activeBackground, tab.activeForeground, tab.activeBorderTop</td></tr>
+    <tr><td>sash</td><td>sash.hoverBorder</td></tr>
+    <tr><td>sidebar</td><td>sideBar.background, sideBar.foreground</td></tr>
+  </table>
+  <p>
+    Foreground colours are chosen automatically: whichever of black or white has the higher contrast on that
+    background. Inactive variants use the same colour with alpha appended (<code>cc</code>, <code>99</code>, <code>88</code>).
+  </p>
+  <p>An unknown part name is a usage error listing the valid ones.</p>
+</section>
+
+<!-- ============ ADJUST ============ -->
+<section id="adjust">
+  <h2>Shifting parts apart</h2>
+  <pre><code>npx hue-shift-cli . --color teal --parts title,status \
+  --adjust title=lighten,status=darken --adjust-pct 8</code></pre>
+  <p>
+    A flat colour across three bars looks like one big block. <code>--adjust</code> moves individual parts
+    along the lightness axis so they read as related but distinct.
+  </p>
+  <table class="keys">
+    <tr><th>Mode</th><th>Effect</th></tr>
+    <tr><td>lighten</td><td>Raises lightness by <code>--adjust-pct</code> points</td></tr>
+    <tr><td>darken</td><td>Lowers lightness by <code>--adjust-pct</code> points</td></tr>
+    <tr><td>none</td><td>Leaves the part at the base colour</td></tr>
+  </table>
+  <p><code>--adjust-pct</code> defaults to 6. Values are clamped, so a light colour cannot be lightened into white.</p>
+  <p>
+    The reported colour stays the base colour; only the written keys shift. <code>--check</code> without
+    <code>--color</code> therefore validates whatever is on disk — it has no base to compare against.
+  </p>
+</section>
+
+<!-- ============ EXCLUDE ============ -->
+<section id="exclude">
+  <h2>Leaving one key alone</h2>
+  <pre><code>npx hue-shift-cli . --color teal --exclude statusBar.noFolderBackground
+npx hue-shift-cli . --color teal \
+  --exclude statusBar.noFolderBackground \
+  --exclude tab.activeForeground</code></pre>
+  <p>
+    Repeatable. Excluded keys are never written, and any value already there is preserved.
+    Useful when a theme or another extension owns a particular bar.
+  </p>
+</section>
+
+<!-- ============ THEME ============ -->
+<section id="theme">
+  <h2>Theme and icons</h2>
+  <pre><code>npx hue-shift-cli . --color teal \
+  --theme "Default Dark Modern" --icons Seti</code></pre>
+  <p>
+    Sets <code>workbench.colorTheme</code> and <code>workbench.iconTheme</code> in the same file, so a project can
+    carry its whole visual identity. Both are ordinary settings — <code>--reset</code> leaves them alone, because
+    they are not colour keys.
+  </p>
+  <p>Use the exact name VS Code shows in the theme picker. A wrong name is written as-is and VS Code falls back to its default.</p>
+</section>
+
+<!-- ============ MODES ============ -->
+<section id="modes">
+  <h2>Modes</h2>
+
+  <h3>Write — the default</h3>
+  <pre><code>npx hue-shift-cli . --color amber</code></pre>
+  <p>Merges the colour block into <code>.vscode/settings.json</code>, creating the file if needed.</p>
+
+  <h3><code>--dry</code> — show the plan, write nothing</h3>
+  <pre><code>npx hue-shift-cli --root ~/projects --random --seed 42 --dry</code></pre>
+  <p>Every line reports the colour it would use. The filesystem is untouched, including the <code>.vscode</code> directory.</p>
+
+  <h3><code>--check</code> — two different jobs</h3>
+  <pre><code>npx hue-shift-cli --root ~/projects --random --seed 42 --check
+npx hue-shift-cli . --color amber --check</code></pre>
+  <p><strong>With a colour</strong> (from <code>--color</code> or a config file): compares every expected key against what is on disk and reports each difference.</p>
+  <p><strong>Without a colour</strong>: validates what is there — that a colour exists, and that its foreground reaches 4.5:1 contrast.</p>
+  <p>Exits <code>2</code> on drift, invalid JSON, or a project with no colour. Safe in CI.</p>
+
+  <h3><code>--reset</code> — remove everything it wrote</h3>
+  <pre><code>npx hue-shift-cli --root ~/projects --reset
+npx hue-shift-cli . --reset --dry</code></pre>
+  <p>
+    Removes every key hue-shift manages, drops the <code>workbench.colorCustomizations</code> object if it becomes empty,
+    and deletes <code>peacock.color</code> only if it still holds a colour hue-shift wrote.
+    Other settings, comments, BOM and line endings survive. Running it twice is safe — the second run reports <code>clean</code>.
+  </p>
+  <p><code>--parts</code> and <code>--adjust</code> are ignored by reset: it removes all managed keys, not just the selected parts.</p>
+
+  <h3><code>--json</code> — for scripts</h3>
+  <pre><code>npx hue-shift-cli --root ~/projects --check --json</code></pre>
+  <pre><code>{
+  "version": "1.0.2",
+  "mode": "check",
+  "results": [
+    {
+      "project": "api",
+      "dir": "/home/me/projects/api",
+      "color": "#0f766e",
+      "status": "ok",
+      "diffs": [],
+      "warnings": []
+    }
+  ]
+}</code></pre>
+  <p>Statuses: <code>created</code>, <code>inserted</code>, <code>updated</code>, <code>unchanged</code>, <code>dry</code>, <code>ok</code>, <code>drift</code>, <code>missing</code>, <code>invalid</code>, <code>reset</code>, <code>clean</code>.</p>
+</section>
+
+<!-- ============ CONFIG ============ -->
+<section id="config">
+  <h2>Config files</h2>
+  <p>Two files, merged. The project wins over the global one. CLI flags win over both.</p>
+
+  <h3><code>~/.hue-shift.json</code> — defaults everywhere</h3>
+  <pre><code>{
+  "parts": ["title", "activity", "status"],
+  "adjust": { "activity": "lighten" },
+  "adjustPct": 6,
+  "theme": "Default Dark Modern",
+  "icons": "Seti"
+}</code></pre>
+
+  <h3><code>&lt;project&gt;/.hue-shift.json</code> — this project only</h3>
+  <pre><code>{
+  "color": "teal",
+  "parts": ["title"],
+  "exclude": ["statusBar.background"]
+}</code></pre>
+
+  <table class="keys">
+    <tr><th>Key</th><th>Type</th><th>Meaning</th></tr>
+    <tr><td>color</td><td>string</td><td>Hex or named colour, pinned for this project</td></tr>
+    <tr><td>random</td><td>boolean</td><td>Use a generated colour when no <code>color</code> is set</td></tr>
+    <tr><td>seed</td><td>number</td><td>Seed for the generated colour</td></tr>
+    <tr><td>parts</td><td>string[]</td><td>Which window parts to colour</td></tr>
+    <tr><td>adjust</td><td>object</td><td><code>{ "title": "lighten" }</code></td></tr>
+    <tr><td>adjustPct</td><td>number</td><td>Lightness shift, default 6</td></tr>
+    <tr><td>exclude</td><td>string[]</td><td>Colour keys to never write</td></tr>
+    <tr><td>theme</td><td>string</td><td><code>workbench.colorTheme</code></td></tr>
+    <tr><td>icons</td><td>string</td><td><code>workbench.iconTheme</code></td></tr>
+  </table>
+  <p>A malformed config file stops the run with the file name and the JSON error.</p>
+</section>
+
+<!-- ============ EXIT ============ -->
+<section id="exit">
+  <h2>Exit codes</h2>
+  <table class="keys">
+    <tr><th>Code</th><th>Meaning</th></tr>
+    <tr><td>0</td><td>Success. Also <code>--check</code> when everything matches.</td></tr>
+    <tr><td>1</td><td>Usage error: unknown flag, bad colour, bad part, missing directory.</td></tr>
+    <tr><td>2</td><td>A project failed: drift, invalid JSON, unreadable file.</td></tr>
+  </table>
+  <pre><code>npx hue-shift-cli --root ~/projects --random --seed 42 --check || echo "palette drifted"</code></pre>
+</section>
+
+<!-- ============ RECIPES ============ -->
+<section id="recipes">
+  <h2>Recipes</h2>
+
+  <h3>Colour everything once, reproducibly</h3>
+  <pre><code>npx hue-shift-cli --root ~/Documents/projects --random --seed 42</code></pre>
+
+  <h3>Preview before touching 75 repos</h3>
+  <pre><code>npx hue-shift-cli --root ~/Documents/projects --random --seed 42 --dry</code></pre>
+
+  <h3>Give each project a pinned colour that survives a rescan</h3>
+  <pre><code># in each project
+echo '{ "color": "teal" }' &gt; .hue-shift.json
+npx hue-shift-cli .</code></pre>
+
+  <h3>Title bars only, no status bar noise</h3>
+  <pre><code>npx hue-shift-cli --root ~/code --random --parts title</code></pre>
+
+  <h3>Two-tone window</h3>
+  <pre><code>npx hue-shift-cli . --color "#6d28d9" --parts title,status \
+  --adjust title=lighten,status=darken --adjust-pct 8</code></pre>
+
+  <h3>Monorepo: neutral root, coloured packages</h3>
+  <pre><code>npx hue-shift-cli . --color slate --parts title
+npx hue-shift-cli packages/api packages/web packages/admin --random --seed 7</code></pre>
+
+  <h3>CI guard</h3>
+  <pre><code>npx hue-shift-cli --root . --random --seed 42 --check --json</code></pre>
+
+  <h3>Undo everything</h3>
+  <pre><code>npx hue-shift-cli --root ~/Documents/projects --reset</code></pre>
+
+  <h3>Machine-readable report of what changed</h3>
+  <pre><code>npx hue-shift-cli --root ~/code --random --json | jq -r '.results[] | "\(.project) \(.color)"'</code></pre>
+</section>
+
+<!-- ============ FLAGS ============ -->
+<section id="flags">
+  <h2>All flags</h2>
+  <table class="keys">
+    <tr><th>Flag</th><th>Value</th><th>What it does</th></tr>
+    <tr><td>--root</td><td>dir</td><td>Treat every subfolder of <code>dir</code> as a project. Repeatable.</td></tr>
+    <tr><td>--random</td><td>—</td><td>Generate a colour per project, spread across the wheel.</td></tr>
+    <tr><td>--seed</td><td>integer</td><td>Make <code>--random</code> reproducible.</td></tr>
+    <tr><td>--color</td><td>hex or name</td><td>Use one exact colour.</td></tr>
+    <tr><td>--list-colors</td><td>—</td><td>Print the built-in palette and exit.</td></tr>
+    <tr><td>--parts</td><td>list</td><td>Comma-separated parts. Default <code>title,activity,status</code>.</td></tr>
+    <tr><td>--adjust</td><td>part=mode</td><td>Comma-separated <code>lighten</code>, <code>darken</code>, <code>none</code>.</td></tr>
+    <tr><td>--adjust-pct</td><td>number</td><td>Lightness shift, default 6.</td></tr>
+    <tr><td>--exclude</td><td>key</td><td>Never write this colour key. Repeatable.</td></tr>
+    <tr><td>--theme</td><td>name</td><td>Also set <code>workbench.colorTheme</code>.</td></tr>
+    <tr><td>--icons</td><td>name</td><td>Also set <code>workbench.iconTheme</code>.</td></tr>
+    <tr><td>--check</td><td>—</td><td>Report drift or validate contrast. Writes nothing.</td></tr>
+    <tr><td>--reset</td><td>—</td><td>Remove every managed colour key.</td></tr>
+    <tr><td>--dry</td><td>—</td><td>Print the plan, write nothing.</td></tr>
+    <tr><td>--json</td><td>—</td><td>Machine-readable output.</td></tr>
+    <tr><td>-h, --help</td><td>—</td><td>Usage text.</td></tr>
+    <tr><td>-v, --version</td><td>—</td><td>Print the version.</td></tr>
+  </table>
+  <p><code>--check</code> and <code>--reset</code> cannot be combined.</p>
+</section>
+
+<!-- ============ ENV ============ -->
+<section id="env">
+  <h2>Environment</h2>
+  <table class="keys">
+    <tr><th>Variable</th><th>Effect</th></tr>
+    <tr><td>HUE_SHIFT_CONFIG</td><td>Path to the global config file. Default <code>~/.hue-shift.json</code>. Useful in tests and CI.</td></tr>
+  </table>
+  <p>No network access, no telemetry, no daemon.</p>
+</section>
+
+</main>
+
+<footer>
+  <span>MIT · built by <a href="https://github.com/aotr">Animesh Chakrobarty</a></span>
+  <span><a href="./">home</a> · <a href="https://github.com/aotr/hue-shift">source</a> · <a href="https://www.npmjs.com/package/hue-shift-cli">npm</a></span>
+</footer>
+
+<script>
+const PALETTE = {
+  amber: "#b45309", "angular-red": "#dd0531", "azure-blue": "#007fff",
+  "burnt-orange": "#c2410c", crimson: "#9f1239", cyan: "#0e7490",
+  green: "#15803d", "javascript-yellow": "#f9e64f", magenta: "#a21caf",
+  "mandalorian-blue": "#1857a4", "node-green": "#215732", olive: "#4d7c0f",
+  "peacock-blue": "#0f4c81", "react-blue": "#61dafb", rose: "#be123c",
+  slate: "#334155", "svelte-orange": "#ff3d00", teal: "#0f766e",
+  violet: "#6d28d9", "vue-green": "#42b883",
+};
+
+const PARTS = ["title", "activity", "status", "border", "tab", "sash", "sidebar"];
+const DEFAULTS = ["title", "activity", "status"];
+
+const state = {
+  target: "cwd",
+  colourMode: "random",
+  colour: "#6d28d9",
+  seed: "",
+  parts: new Set(DEFAULTS),
+  adjust: {},
+  pct: 6,
+  mode: "apply",
+  dry: false,
+  json: false,
+  theme: "",
+  icons: "",
+  exclude: "",
+};
+
+const $ = (id) => document.getElementById(id);
+
+// --- colour helpers, mirroring src/colors.js ---
+function parseColor(value) {
+  if (typeof value !== "string") return null;
+  const raw = value.trim().toLowerCase();
+  if (PALETTE[raw]) return parseColor(PALETTE[raw]);
+  const m = raw.match(/^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);
+  if (!m) return null;
+  const h = m[1];
+  if (h.length === 3) return { r: parseInt(h[0] + h[0], 16), g: parseInt(h[1] + h[1], 16), b: parseInt(h[2] + h[2], 16) };
+  return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
+}
+
+const toHex = ({ r, g, b }) =>
+  "#" + [r, g, b].map((n) => Math.min(255, Math.max(0, Math.round(n))).toString(16).padStart(2, "0")).join("");
+
+function luminance(hex) {
+  const { r, g, b } = parseColor(hex);
+  const ch = (c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b);
+}
+
+function contrast(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+// --- build the command ---
+function build() {
+  const bits = ["npx hue-shift-cli"];
+
+  if (state.target === "root") bits.push("--root", quote($("root").value.trim() || "~/Documents/projects"));
+  else if (state.target === "paths") bits.push(...($("paths").value.trim().split(/\s+/).filter(Boolean).map(quote) || []));
+
+  if (state.mode !== "reset") {
+    if (state.colourMode === "explicit") {
+      bits.push("--color", quote(state.colour || "#6d28d9"));
+    } else if (state.colourMode === "random") {
+      bits.push("--random");
+      if (state.seed) bits.push("--seed", state.seed);
+    }
+
+    const parts = PARTS.filter((p) => state.parts.has(p));
+    if (parts.length && parts.join(",") !== DEFAULTS.join(",")) bits.push("--parts", parts.join(","));
+
+    const adj = Object.entries(state.adjust).filter(([p, m]) => m !== "none" && state.parts.has(p));
+    if (adj.length) {
+      bits.push("--adjust", adj.map(([p, m]) => `${p}=${m}`).join(","));
+      if (Number(state.pct) !== 6) bits.push("--adjust-pct", String(state.pct));
+    }
+
+    if (state.theme) bits.push("--theme", quote(state.theme));
+    if (state.icons) bits.push("--icons", quote(state.icons));
+  }
+
+  if (state.mode !== "reset") {
+    for (const key of state.exclude.split(",").map((s) => s.trim()).filter(Boolean)) {
+      bits.push("--exclude", key);
+    }
+  }
+
+  if (state.mode === "check") bits.push("--check");
+  if (state.mode === "reset") bits.push("--reset");
+  if (state.dry) bits.push("--dry");
+  if (state.json) bits.push("--json");
+
+  return bits.join(" ");
+}
+
+function quote(v) {
+  // A leading # starts a shell comment, so hex values always need quotes.
+  if (/^#/.test(v) || /[\s"'`$\\]/.test(v)) return `"${v.replace(/"/g, '\\"')}"`;
+  return v;
+}
+
+// --- render ---
+function render() {
+  $("cmd").textContent = build();
+
+  const parsed = parseColor(state.colour);
+  const swatch = $("swatch");
+  const meta = $("swatch-meta");
+  if (parsed) {
+    const hex = toHex(parsed);
+    const fg = contrast(hex, "#ffffff") >= contrast(hex, "#000000") ? "#ffffff" : "#000000";
+    swatch.style.background = hex;
+    swatch.style.borderColor = hex;
+    meta.textContent = `${hex} · ${contrast(hex, fg).toFixed(2)}:1 with ${fg === "#ffffff" ? "white" : "black"} text`;
+    meta.style.color = contrast(hex, fg) >= 4.5 ? "var(--ink-faint)" : "#f87171";
+  } else {
+    swatch.style.background = "transparent";
+    meta.textContent = state.colour ? "not a colour — try #6d28d9 or teal" : "hex or named colour";
+    meta.style.color = state.colour ? "#f87171" : "var(--ink-faint)";
+  }
+
+  $("note").textContent = note();
+}
+
+function note() {
+  if (state.mode === "reset") return "Reset removes every managed colour key and ignores parts, adjust, theme and icons.";
+  if (state.mode === "check" && state.colourMode === "validate") return "Validates what is on disk: a colour exists, and its text is readable. Writes nothing.";
+  if (state.mode === "check") return "Check writes nothing and exits 2 on drift.";
+  if (state.target === "root" && state.colourMode === "explicit") return "Heads up: --color with --root paints every project the same colour.";
+  if (state.dry) return "Dry run prints the plan and writes nothing.";
+  return "";
+}
+
+// --- wire up ---
+const partBox = $("parts");
+for (const p of PARTS) {
+  const label = document.createElement("label");
+  const box = document.createElement("input");
+  box.type = "checkbox";
+  box.checked = DEFAULTS.includes(p);
+  box.addEventListener("change", () => {
+    box.checked ? state.parts.add(p) : state.parts.delete(p);
+    renderAdjusts();
+    render();
+  });
+  label.append(box, document.createTextNode(p));
+  partBox.append(label);
+}
+
+function renderAdjusts() {
+  const host = $("adjusts");
+  host.textContent = "";
+  for (const p of PARTS) {
+    if (!state.parts.has(p)) continue;
+    const row = document.createElement("div");
+    row.className = "adjust-row";
+    const name = document.createElement("span");
+    name.textContent = p;
+    const sel = document.createElement("select");
+    for (const mode of ["none", "lighten", "darken"]) {
+      const opt = document.createElement("option");
+      opt.value = mode;
+      opt.textContent = mode;
+      if ((state.adjust[p] || "none") === mode) opt.selected = true;
+      sel.append(opt);
+    }
+    sel.addEventListener("change", () => {
+      state.adjust[p] = sel.value;
+      render();
+    });
+    row.append(name, sel);
+    host.append(row);
+  }
+}
+
+const datalist = $("palette");
+for (const name of Object.keys(PALETTE).sort()) {
+  const opt = document.createElement("option");
+  opt.value = name;
+  datalist.append(opt);
+}
+
+document.querySelectorAll('input[name="target"]').forEach((r) =>
+  r.addEventListener("change", () => {
+    state.target = r.value;
+    $("root").disabled = state.target !== "root";
+    $("paths").disabled = state.target !== "paths";
+    render();
+  }),
+);
+
+document.querySelectorAll('input[name="colour"]').forEach((r) =>
+  r.addEventListener("change", () => {
+    state.colourMode = r.value;
+    $("colour").disabled = state.colourMode !== "explicit";
+    $("seed").disabled = state.colourMode !== "random";
+
+    // "whatever is already there" only makes sense when checking.
+    if (state.colourMode === "validate" && state.mode !== "check") {
+      state.mode = "check";
+      document.querySelector('input[name="mode"][value="check"]').checked = true;
+      document.querySelectorAll("#adjusts select, #parts input, #theme, #icons, #pct").forEach((el) => {
+        el.disabled = false;
+      });
+    }
+    render();
+  }),
+);
+
+document.querySelectorAll('input[name="mode"]').forEach((r) =>
+  r.addEventListener("change", () => {
+    state.mode = r.value;
+    document.querySelectorAll("#adjusts select, #parts input, #theme, #icons, #pct").forEach((el) => {
+      el.disabled = state.mode === "reset";
+    });
+    render();
+  }),
+);
+
+$("root").addEventListener("input", render);
+$("paths").addEventListener("input", render);
+$("colour").addEventListener("input", (e) => { state.colour = e.target.value; render(); });
+$("seed").addEventListener("input", (e) => { state.seed = e.target.value.trim(); render(); });
+$("pct").addEventListener("input", (e) => { state.pct = e.target.value; render(); });
+$("theme").addEventListener("input", (e) => { state.theme = e.target.value.trim(); render(); });
+$("icons").addEventListener("input", (e) => { state.icons = e.target.value.trim(); render(); });
+$("exclude").addEventListener("input", (e) => { state.exclude = e.target.value; render(); });
+$("dry").addEventListener("change", (e) => { state.dry = e.target.checked; render(); });
+$("json").addEventListener("change", (e) => { state.json = e.target.checked; render(); });
+
+$("copy").addEventListener("click", async () => {
+  const btn = $("copy");
+  try {
+    await navigator.clipboard.writeText($("cmd").textContent);
+    btn.textContent = "copied";
+    btn.classList.add("done");
+    setTimeout(() => { btn.textContent = "copy"; btn.classList.remove("done"); }, 1400);
+  } catch {
+    btn.textContent = "select it";
+  }
+});
+
+$("colour").disabled = true;
+renderAdjusts();
+render();
+</script>
+</body>
+</html>
