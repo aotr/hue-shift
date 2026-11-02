@@ -9,12 +9,15 @@ import { fileURLToPath } from "node:url";
 import {
   NAMED_COLORS,
   normalizeColor,
+  parseColor,
+  rgbToHsl,
   randomColor,
   mulberry32,
   stableColor,
   listNamedColors,
   contrastRatio,
 } from "./colors.js";
+import { lockPath, readLock, writeLock } from "./lock.js";
 import {
   PART_KEYS,
   DEFAULT_PARTS,
@@ -62,6 +65,10 @@ CHECKS
   --restore                put settings.json back as it was before the first apply
   --dry                    print the plan, write nothing
   --json                   machine-readable output
+
+  --root runs keep their palette in <root>/hue-shift.lock.json and reuse it,
+  so adding a folder never recolours existing projects. Delete the file to
+  re-roll every colour.
 
   -h, --help               this text
   -v, --version            print version
@@ -204,11 +211,11 @@ const expand = (p) => (p === "~" ? os.homedir() : p.startsWith("~/") ? path.join
 export function resolveTargets(cli, cwd = process.cwd()) {
   const targets = [];
   const seen = new Set();
-  const add = (name, dir) => {
+  const add = (name, dir, root = null) => {
     const key = process.platform === "win32" ? dir.toLowerCase() : dir;
     if (seen.has(key)) return;
     seen.add(key);
-    targets.push({ name, dir });
+    targets.push({ name, dir, root });
   };
 
   for (const root of cli.roots) {
@@ -220,7 +227,7 @@ export function resolveTargets(cli, cwd = process.cwd()) {
       .map((d) => d.name)
       .sort();
     if (children.length === 0) fail(`no project folders inside ${dir}`);
-    for (const c of children) add(c, path.join(dir, c));
+    for (const c of children) add(c, path.join(dir, c), dir);
   }
 
   for (const p of cli.projects) {
@@ -243,6 +250,99 @@ function currentColor(dir) {
     return c["titleBar.activeBackground"] || c["activityBar.background"] || c["statusBar.background"] || null;
   } catch {
     return null;
+  }
+}
+
+/** Resolve colours through the root locks, then apply or check every target. */
+function applyOrCheck(cli, targets, results) {
+  const roots = [...new Set(targets.map((t) => t.root).filter(Boolean))];
+  const locks = new Map();
+  for (const root of roots) {
+    locks.set(root, {
+      exists: fs.existsSync(lockPath(root)),
+      projects: readLock(root).projects,
+    });
+  }
+  const anyLock = [...locks.values()].some((l) => l.exists);
+
+  // New colours avoid every locked hue, including entries for folders that
+  // are not in this run, so a folder renamed back still gets a distinct one.
+  const usedHues = [];
+  for (const { projects } of locks.values()) {
+    for (const hex of Object.values(projects)) {
+      const rgb = parseColor(hex);
+      if (rgb) usedHues.push(rgbToHsl(rgb).h);
+    }
+  }
+
+  // --seed makes --random reproducible across the whole run.
+  const rng = cli.seed !== null ? mulberry32(cli.seed) : Math.random;
+  const lockSizes = new Map();
+  for (const [root, lock] of locks) lockSizes.set(root, Object.keys(lock.projects).length);
+  const nextStable = new Map();
+  const plan = [];
+
+  for (const [index, target] of targets.entries()) {
+    const config = loadConfig(target.dir);
+    const explicit = cli.color || config.color || null;
+    const lock = target.root ? locks.get(target.root) : null;
+    const locked = lock?.projects[target.name] || null;
+    const wantsRandom = cli.random || (config.random === true && cli.color === null && !cli.check);
+
+    let color = null;
+    if (explicit) {
+      color = normalizeColor(explicit);
+      if (!color) fail(`invalid colour "${explicit}". Try --list-colors`);
+    } else if (locked) {
+      color = locked;
+    } else if (wantsRandom) {
+      // Locked hues are not grid-aligned, so the even grid cannot keep its
+      // 22° gap. Use the most-isolated-arc path once a lock exists.
+      color = randomColor(usedHues, rng, anyLock ? null : targets.length);
+    } else if (cli.check) {
+      // No base colour known: check runs in validate-only mode.
+      color = null;
+    } else if (lock?.exists) {
+      const base = nextStable.get(target.root) ?? lockSizes.get(target.root);
+      color = stableColor(base);
+      nextStable.set(target.root, base + 1);
+    } else {
+      color = stableColor(index);
+    }
+
+    // Record the effective colour so --check compares against intent.
+    if (!cli.check && lock && color) lock.projects[target.name] = color;
+    plan.push({ target, config, color, hasLock: !!lock?.exists });
+  }
+
+  // Write every palette before touching any settings. A lock failure aborts
+  // the run with nothing changed.
+  if (!cli.check && !cli.dry) {
+    for (const [root, lock] of locks) writeLock(root, lock.projects);
+  }
+
+  for (const { target, config, color, hasLock } of plan) {
+    const opts = resolveOptions(cli, config, color);
+
+    if (cli.check) {
+      if (!color && hasLock) {
+        results.push({ project: target.name, dir: target.dir, color: null, status: "missing", diffs: [], warnings: ["no lock entry"] });
+        continue;
+      }
+      const res = check(target.dir, opts);
+      results.push({ project: target.name, dir: target.dir, color: res.color || color, status: res.status, diffs: res.diffs, warnings: res.warnings });
+      continue;
+    }
+
+    const res = apply(target.dir, opts);
+    const ratio = contrastRatio(color, "#ffffff");
+    results.push({
+      project: target.name,
+      dir: target.dir,
+      color,
+      status: res.status,
+      contrast: ratio === null ? null : Number(ratio.toFixed(2)),
+    });
   }
 }
 
@@ -271,61 +371,19 @@ export function run(argv, { cwd = process.cwd(), out = console.log } = {}) {
   const targets = resolveTargets(cli, cwd);
   const results = [];
 
-  // --seed makes --random reproducible across the whole run.
-  const rng = cli.seed !== null ? mulberry32(cli.seed) : Math.random;
-  const usedHues = [];
-
-  for (const [index, target] of targets.entries()) {
-    if (cli.restore) {
+  if (cli.restore) {
+    for (const target of targets) {
       const res = restore(target.dir, { dry: cli.dry });
       results.push({ project: target.name, dir: target.dir, status: res.status, backup: res.backup, error: res.error });
-      continue;
     }
-
-    const config = loadConfig(target.dir);
-
-    const wantsRandom = cli.random || (config.random === true && cli.color === null && !cli.check);
-    const explicit = cli.color || config.color || null;
-
-    let color;
-    if (explicit) {
-      color = normalizeColor(explicit);
-      if (!color) fail(`invalid colour "${explicit}". Try --list-colors`);
-    } else if (wantsRandom) {
-      color = randomColor(usedHues, rng, targets.length);
-    } else if (cli.check) {
-      // No base colour known: check runs in validate-only mode.
-      color = null;
-    } else if (cli.reset) {
-      color = null;
-    } else {
-      color = stableColor(index);
-    }
-
-    const opts = resolveOptions(cli, config, color);
-
-    if (cli.reset) {
+  } else if (cli.reset) {
+    for (const target of targets) {
       const before = currentColor(target.dir);
       const res = reset(target.dir, { dry: cli.dry, withPeacock: true });
       results.push({ project: target.name, dir: target.dir, color: before, status: res.status, removed: res.removed });
-      continue;
     }
-
-    if (cli.check) {
-      const res = check(target.dir, opts);
-      results.push({ project: target.name, dir: target.dir, color: res.color || color, status: res.status, diffs: res.diffs, warnings: res.warnings });
-      continue;
-    }
-
-    const res = apply(target.dir, opts);
-    const ratio = contrastRatio(color, "#ffffff");
-    results.push({
-      project: target.name,
-      dir: target.dir,
-      color,
-      status: res.status,
-      contrast: ratio === null ? null : Number(ratio.toFixed(2)),
-    });
+  } else {
+    applyOrCheck(cli, targets, results);
   }
 
   const failureStatuses = cli.check

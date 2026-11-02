@@ -79,6 +79,7 @@
         <tr><td>Detect drift (<code>--check</code>)</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
         <tr><td>Contrast validation</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
         <tr><td>Colour + theme + icons</td><td class="no">✗</td><td class="no">✗</td><td class="yes">theme only</td><td class="us yes">✓</td></tr>
+        <tr><td>Stable palette when folders change</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
         <tr><td>Zero runtime dependencies</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="us yes">✓</td></tr>
         <tr><td>macOS · Linux · Windows</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="us yes">✓</td></tr>
       </tbody>
@@ -96,7 +97,7 @@ npx hue-shift-cli --random</code></pre>
   </div>
 
   <div class="cmd">
-    <p>Colour everything under a folder, reproducibly</p>
+    <p>Colour everything under a folder, reproducibly; later runs only colour new folders</p>
     <pre><code>npx hue-shift-cli --root ~/projects --random --seed 42</code></pre>
   </div>
 

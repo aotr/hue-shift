@@ -348,8 +348,26 @@ npx hue-shift-cli --random</code></pre>
   <pre><code>npx hue-shift-cli --root ~/Documents/projects --random --seed 42</code></pre>
   <p>
     Every immediate subfolder becomes a project. Hidden folders (<code>.git</code>, <code>.config</code>) and
-    <code>node_modules</code> are skipped. Results are sorted by name, so the same seed always maps to the same project.
+    <code>node_modules</code> are skipped. Results are sorted by name.
     Scanning is one level deep — nested packages need their own run or an explicit path.
+  </p>
+
+  <h3>The palette lock</h3>
+  <p>
+    The first <code>--root</code> run writes <code>hue-shift.lock.json</code> in the root, mapping each folder
+    to its colour. Later runs reuse those colours, so adding, removing or renaming a folder never recolours
+    the projects that are already there. New folders get the next generated colour.
+  </p>
+  <pre><code>{
+  "version": 1,
+  "projects": {
+    "api": "#0f766e",
+    "web": "#b45309"
+  }
+}</code></pre>
+  <p>
+    Commit the lock if the root is a git repository, so a fresh clone gets the same palette. Delete it to
+    re-roll every colour. <code>--reset</code> and <code>--restore</code> leave it alone.
   </p>
 
   <h3>Positional paths — name them exactly</h3>
@@ -425,10 +443,11 @@ npx hue-shift-cli --list-colors --json</code></pre>
     <li><code>--color</code> on the command line</li>
     <li><code>color</code> in the project's <code>.hue-shift.json</code></li>
     <li><code>color</code> in <code>~/.hue-shift.json</code></li>
+    <li>the project's entry in <code>hue-shift.lock.json</code> (<code>--root</code> only)</li>
     <li><code>--random</code>, or <code>random: true</code> in a config file</li>
     <li>A stable colour derived from the project's position in the sorted list</li>
   </ol>
-  <p><code>--seed</code> only affects the random step. Without <code>--random</code> it does nothing.</p>
+  <p><code>--seed</code> only affects colours that are generated. It never recolours a locked project.</p>
 </section>
 
 <!-- ============ PARTS ============ -->
@@ -511,14 +530,15 @@ npx hue-shift-cli . --color teal \
 
   <h3><code>--dry</code> — show the plan, write nothing</h3>
   <pre><code>npx hue-shift-cli --root ~/projects --random --seed 42 --dry</code></pre>
-  <p>Every line reports the colour it would use. The filesystem is untouched, including the <code>.vscode</code> directory.</p>
+  <p>Every line reports the colour it would use. The filesystem is untouched, including the <code>.vscode</code> directory and the lock.</p>
 
   <h3><code>--check</code> — two different jobs</h3>
   <pre><code>npx hue-shift-cli --root ~/projects --random --seed 42 --check
 npx hue-shift-cli . --color amber --check</code></pre>
-  <p><strong>With a colour</strong> (from <code>--color</code> or a config file): compares every expected key against what is on disk and reports each difference.</p>
-  <p><strong>Without a colour</strong>: validates what is there — that a colour exists, and that its foreground reaches 4.5:1 contrast.</p>
-  <p>Exits <code>2</code> on drift, invalid JSON, or a project with no colour. Safe in CI.</p>
+  <p><strong>With a colour</strong> (from <code>--color</code>, a config file, or the root lock): compares every expected key against what is on disk and reports each difference.</p>
+  <p><strong>Without a colour</strong> (no lock and no explicit colour): validates what is there — that a colour exists, and that its foreground reaches 4.5:1 contrast.</p>
+  <p>In <code>--root</code> mode with a lock, a folder that has no entry reports <code>missing</code>.</p>
+  <p>Exits <code>2</code> on drift, invalid JSON, a project with no colour, or a missing lock entry. Safe in CI.</p>
 
   <h3><code>--reset</code> — remove everything it wrote</h3>
   <pre><code>npx hue-shift-cli --root ~/projects --reset
@@ -528,7 +548,7 @@ npx hue-shift-cli . --reset --dry</code></pre>
     and deletes <code>peacock.color</code> only if it still holds a colour hue-shift wrote.
     Other settings, comments, BOM and line endings survive. Running it twice is safe — the second run reports <code>clean</code>.
   </p>
-  <p><code>--parts</code> and <code>--adjust</code> are ignored by reset: it removes all managed keys, not just the selected parts.</p>
+  <p><code>--parts</code> and <code>--adjust</code> are ignored by reset: it removes all managed keys, not just the selected parts. It leaves <code>hue-shift.lock.json</code> alone.</p>
 
   <h3><code>--restore</code> — put settings.json back</h3>
   <pre><code>npx hue-shift-cli --root ~/projects --restore

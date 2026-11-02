@@ -108,7 +108,7 @@ hue-shift --root <dir> [options]     every subfolder of <dir> as a project
 
 | Flag | What it does |
 |---|---|
-| `--random` | random colour per project |
+| `--random` | random colour per project (later `--root` runs only colour new projects) |
 | `--seed <n>` | make `--random` reproducible |
 | `--color <hex\|name>` | a specific colour |
 | `--list-colors` | print the built-in palette |
@@ -214,6 +214,8 @@ Only this block, and only the keys for the parts you asked for:
 }
 ```
 
+In `--root` mode it also writes `hue-shift.lock.json` in the root directory. The lock records each project's colour so later runs do not recolour projects that are already there.
+
 Your `settings.json` is treated carefully:
 
 - **Merged, not replaced.** Colour keys hue-shift does not own are preserved.
@@ -243,15 +245,20 @@ If you want those, run Peacock alongside. They write the same keys, so they do n
 Colours that stay put, with drift detection in CI:
 
 ```bash
-# once, pin a palette
+# once, assign a palette and write the lock
 cd ~/Documents/projects
 npx hue-shift-cli --root . --random --seed 42
 
-# later, after a merge or a settings sync
-npx hue-shift-cli --root . --random --seed 42 --check
+# later, after adding a project: existing colours stay put
+npx hue-shift-cli --root . --random --seed 42
+
+# fail a build when a project has drifted or has no colour
+npx hue-shift-cli --root . --check
 ```
 
-`--check` exits non-zero when a project has drifted, so it works as a pre-commit or CI guard.
+The first bulk run writes `hue-shift.lock.json` in the root. Later runs reuse those colours, so adding or removing folders never recolours an existing project. `--seed` only affects projects that are not in the lock yet. If the root is a git repository, commit the lock so a fresh clone gets the same palette. Delete it to re-roll every colour.
+
+`--check` uses the lock as the expected palette and exits non-zero when a project has drifted or has no colour, so it works as a pre-commit or CI guard.
 
 ---
 
@@ -285,7 +292,10 @@ npx hue-shift-cli --root ~/projects --restore
 # or just remove hue-shift's colour keys, keeping everything else
 npx hue-shift-cli --root ~/projects --reset
 ```
-`--restore` uses the one-time backup made before the first write. `--reset` is narrower: it removes only the keys hue-shift wrote, and leaves your other settings, comments, and line endings alone.
+`--restore` uses the one-time backup made before the first write. `--reset` is narrower: it removes only the keys hue-shift wrote, and leaves your other settings, comments, and line endings alone. Neither touches `hue-shift.lock.json`.
+
+**How do I re-roll all colours?**
+Delete `hue-shift.lock.json` from the root and run the command again. To re-roll one project, remove its entry from the lock.
 
 **Why is the npm package called `hue-shift-cli`?**
 npm rejects `hue-shift` as too similar to an existing `hueshift` package. The command it installs is still `hue-shift`.
@@ -300,7 +310,7 @@ No. It writes to `settings.json`, which VS Code reads on startup. Run it once pe
 Yes, if the remote machine's filesystem is where the project lives. Run it on the remote, not locally.
 
 **Does it touch anything outside `.vscode/settings.json`?**
-It creates that file and directory if missing. On the first write it also saves `.vscode/.hue-shift-backup.json`, which `--restore` uses; nothing else.
+It creates that file and directory if missing. On the first write it saves `.vscode/.hue-shift-backup.json`, which `--restore` uses. In `--root` mode it writes `hue-shift.lock.json` in the root. Nothing else.
 
 ---
 
@@ -335,12 +345,13 @@ No dependencies to install. Tests use the built-in `node:test` runner.
 
 ```
 src/colors.js     colour maths, palette, seeded random
+src/lock.js       the stable --root palette
 src/settings.js   JSONC-safe read / merge / write / reset / check
 src/cli.js        argument parsing and the runner
 bin/hue-shift.js  entry point
 ```
 
-103 tests covering hex parsing, HSL round trips, contrast, JSONC edge cases, BOM/CRLF preservation, merging, reset/restore and every CLI flag.
+121 tests covering hex parsing, HSL round trips, contrast, JSONC edge cases, BOM/CRLF preservation, merging, reset/restore, the palette lock and every CLI flag.
 
 ---
 
@@ -351,7 +362,7 @@ Bug reports, palette additions, and platform fixes are welcome. See [CONTRIBUTIN
 ```bash
 git clone https://github.com/aotr/hue-shift.git
 cd hue-shift
-npm test        # 103 tests, no install needed
+npm test        # 121 tests, no install needed
 ```
 
 ---

@@ -11,6 +11,7 @@ fs.rmSync(CONFIG, { force: true });
 
 const { parseArgs, resolveTargets, run, VERSION, loadConfig } = await import("../src/cli.js");
 const { parseJsonc } = await import("../src/settings.js");
+const { LOCK_FILE, lockPath } = await import("../src/lock.js");
 
 function tmp() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "hue-shift-cli-"));
@@ -24,6 +25,8 @@ function cli(args, cwd) {
 }
 
 const settingsOf = (dir) => parseJsonc(fs.readFileSync(path.join(dir, ".vscode", "settings.json"), "utf8"));
+const lockOf = (root) => JSON.parse(fs.readFileSync(lockPath(root), "utf8"));
+const titleOf = (dir) => settingsOf(dir)["workbench.colorCustomizations"]["titleBar.activeBackground"];
 
 test("parseArgs returns sane defaults", () => {
   const o = parseArgs([]);
@@ -333,4 +336,132 @@ test("--restore --json reports the mode", () => {
 test("--restore cannot be combined with --check or --reset", () => {
   assert.throws(() => cli([tmp(), "--restore", "--check"]), /cannot be combined/);
   assert.throws(() => cli([tmp(), "--restore", "--reset"]), /cannot be combined/);
+});
+
+test("--root writes a lock with every assigned colour", () => {
+  const root = tmp();
+  for (const n of ["beta", "alpha"]) fs.mkdirSync(path.join(root, n));
+
+  assert.equal(cli(["--root", root, "--random", "--seed", "7"]).code, 0);
+
+  const lock = lockOf(root);
+  assert.deepEqual(Object.keys(lock.projects), ["alpha", "beta"], "keys are sorted");
+  for (const n of ["alpha", "beta"]) {
+    assert.equal(lock.projects[n], titleOf(path.join(root, n)));
+  }
+});
+
+test("adding a project keeps every existing colour", () => {
+  const root = tmp();
+  for (const n of ["a", "b"]) fs.mkdirSync(path.join(root, n));
+  cli(["--root", root, "--random", "--seed", "42"]);
+  const before = Object.fromEntries(["a", "b"].map((n) => [n, titleOf(path.join(root, n))]));
+
+  fs.mkdirSync(path.join(root, "c"));
+  assert.equal(cli(["--root", root, "--random", "--seed", "42"]).code, 0);
+
+  for (const n of ["a", "b"]) assert.equal(titleOf(path.join(root, n)), before[n], `${n} stays put`);
+  const colours = ["a", "b", "c"].map((n) => titleOf(path.join(root, n)));
+  assert.equal(new Set(colours).size, 3, "three distinct colours");
+
+  // A different seed must not recolour anything that is already locked.
+  assert.equal(cli(["--root", root, "--random", "--seed", "99"]).code, 0);
+  assert.deepEqual(["a", "b", "c"].map((n) => titleOf(path.join(root, n))), colours);
+});
+
+test("the default bulk palette is stable too", () => {
+  const root = tmp();
+  fs.mkdirSync(path.join(root, "a"));
+  cli(["--root", root]);
+  const before = titleOf(path.join(root, "a"));
+
+  fs.mkdirSync(path.join(root, "b"));
+  cli(["--root", root]);
+  assert.equal(titleOf(path.join(root, "a")), before);
+});
+
+test("a removed project keeps its lock entry", () => {
+  const root = tmp();
+  for (const n of ["a", "b"]) fs.mkdirSync(path.join(root, n));
+  cli(["--root", root, "--random", "--seed", "1"]);
+  const colour = lockOf(root).projects.b;
+
+  fs.rmSync(path.join(root, "b"), { recursive: true });
+  assert.equal(cli(["--root", root, "--random", "--seed", "1"]).code, 0);
+  assert.equal(lockOf(root).projects.b, colour);
+});
+
+test("--color records the effective palette in the lock", () => {
+  const root = tmp();
+  for (const n of ["a", "b"]) fs.mkdirSync(path.join(root, n));
+
+  cli(["--root", root, "--color", "teal"]);
+  assert.deepEqual(lockOf(root).projects, { a: "#0f766e", b: "#0f766e" });
+});
+
+test("--check uses the lock and catches tampering", () => {
+  const root = tmp();
+  for (const n of ["a", "b"]) fs.mkdirSync(path.join(root, n));
+  cli(["--root", root, "--random", "--seed", "5"]);
+  assert.equal(cli(["--root", root, "--check"]).code, 0);
+
+  const file = path.join(root, "a", ".vscode", "settings.json");
+  fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace(/"titleBar.activeBackground": "#[0-9a-f]{6}"/, '"titleBar.activeBackground": "#ff0000"'));
+
+  const res = cli(["--root", root, "--check", "--json"]);
+  assert.equal(res.code, 2);
+  assert.equal(res.json().results.find((r) => r.project === "a").status, "drift");
+});
+
+test("--check reports a folder with no lock entry as missing", () => {
+  const root = tmp();
+  fs.mkdirSync(path.join(root, "a"));
+  cli(["--root", root, "--random", "--seed", "5"]);
+
+  fs.mkdirSync(path.join(root, "b"));
+  const res = cli(["--root", root, "--check", "--json"]);
+  assert.equal(res.code, 2);
+  assert.equal(res.json().results.find((r) => r.project === "b").status, "missing");
+});
+
+test("--dry in root mode creates no lock", () => {
+  const root = tmp();
+  fs.mkdirSync(path.join(root, "a"));
+
+  assert.equal(cli(["--root", root, "--random", "--dry"]).code, 0);
+  assert.equal(fs.existsSync(lockPath(root)), false);
+});
+
+test("--reset leaves the lock alone", () => {
+  const root = tmp();
+  fs.mkdirSync(path.join(root, "a"));
+  cli(["--root", root, "--random", "--seed", "5"]);
+  const before = fs.readFileSync(lockPath(root), "utf8");
+
+  assert.equal(cli(["--root", root, "--reset"]).code, 0);
+  assert.equal(fs.readFileSync(lockPath(root), "utf8"), before);
+});
+
+test("a single-project run neither reads nor writes a lock", () => {
+  const root = tmp();
+  const child = path.join(root, "child");
+  fs.mkdirSync(child);
+  fs.writeFileSync(lockPath(root), JSON.stringify({ version: 1, projects: { child: "#123456" } }));
+
+  cli([child]);
+  assert.notEqual(titleOf(child), "#123456");
+  assert.equal(fs.existsSync(path.join(child, LOCK_FILE)), false);
+});
+
+test("a malformed lock aborts before writing, and --reset still works", () => {
+  const root = tmp();
+  fs.mkdirSync(path.join(root, "a"));
+  const bad = "{ broken";
+  fs.writeFileSync(lockPath(root), bad);
+
+  assert.throws(() => cli(["--root", root]), /invalid lock file/);
+  assert.equal(fs.existsSync(path.join(root, "a", ".vscode", "settings.json")), false);
+
+  assert.equal(cli(["--root", root, "--reset"]).code, 0);
+  assert.equal(fs.readFileSync(lockPath(root), "utf8"), bad);
 });

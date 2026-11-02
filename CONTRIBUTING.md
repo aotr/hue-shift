@@ -47,6 +47,7 @@ If you fix a bug, add the failing case first.
 ```
 bin/hue-shift.js   entry point, argument hand-off, exit codes
 src/colors.js      colour maths, palette, seeded random
+src/lock.js        the stable --root palette
 src/settings.js    JSONC read / merge / write / reset / check
 src/cli.js         argument parsing, config resolution, output
 test/              node:test suites, one per module
