@@ -3,10 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CLI reference — hue-shift</title>
-<meta name="description" content="Every hue-shift flag, every combination, and a builder that writes the command for you.">
+<title>hue-shift CLI reference: every flag, recipe and command builder</title>
+<meta name="description" content="Full command reference for hue-shift-cli: colour flags, --parts, --adjust, --seed, --check, --reset, --restore, config files, exit codes, and an interactive command builder.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0a0b0e">
+<link rel="canonical" href="https://aotr.github.io/hue-shift/cli.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="hue-shift">
+<meta property="og:url" content="https://aotr.github.io/hue-shift/cli.html">
+<meta property="og:title" content="hue-shift CLI reference: every flag, recipe and command builder">
+<meta property="og:description" content="Every flag, every combination, and a builder that writes the command for you.">
+<meta property="og:image" content="https://aotr.github.io/hue-shift/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="hue-shift CLI reference: every flag, recipe and command builder">
+<meta name="twitter:description" content="Every flag, every combination, and a builder that writes the command for you.">
+<meta name="twitter:image" content="https://aotr.github.io/hue-shift/og.png">
+
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236d28d9'/><rect x='7' y='7' width='18' height='4' rx='2' fill='%23fff'/></svg>">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "hue-shift CLI reference",
+  "description": "Full command reference for hue-shift-cli: colour flags, parts, adjust, seed, check, reset, restore, config files and exit codes.",
+  "url": "https://aotr.github.io/hue-shift/cli.html",
+  "mainEntityOfPage": "https://aotr.github.io/hue-shift/cli.html",
+  "dateModified": "2026-11-04",
+  "inLanguage": "en",
+  "author": { "@type": "Person", "name": "Animesh Chakrobarty", "url": "https://github.com/aotr" },
+  "about": {
+    "@type": "SoftwareApplication",
+    "name": "hue-shift",
+    "alternateName": "hue-shift-cli",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "macOS, Windows, Linux",
+    "url": "https://aotr.github.io/hue-shift/"
+  }
+}
+</script>
 <style>
   .doc { max-width: 900px; }
   .doc section { padding: clamp(36px, 6vw, 64px) 0; }
@@ -573,7 +612,7 @@ npx hue-shift-cli . --restore --dry</code></pre>
   <h3><code>--json</code> — for scripts</h3>
   <pre><code>npx hue-shift-cli --root ~/projects --check --json</code></pre>
   <pre><code>{
-  "version": "1.2.0",
+  "version": "1.2.1",
   "mode": "check",
   "results": [
     {
