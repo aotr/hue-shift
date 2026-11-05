@@ -76,9 +76,66 @@ function generate(count) {
   return out;
 }
 
+const previewEl = document.getElementById("preview");
+const previewFigure = document.getElementById("preview-figure");
+const previewHex = document.getElementById("preview-hex");
+const grid = document.getElementById("grid");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let cards = [];
+let cursor = 0;
+let cycle = null;
+
+// A miniature VS Code window, tinted from one colour. Every surface the CLI
+// can paint (title bar, activity bar, status bar) is visible here.
+function windowMarkup({ name, hex, fg }) {
+  return `
+    <div class="win-title" style="background:${hex};color:${fg}">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="win-name">${name} — Visual Studio Code</span>
+    </div>
+    <div class="win-tabs">
+      <span class="on">${name}.js</span>
+      <span>index.html</span>
+      <span>README.md</span>
+    </div>
+    <div class="win-main">
+      <div class="win-activity"><i class="on"></i><i></i><i></i><i></i></div>
+      <div class="win-side">
+        <span>src</span>
+        <span class="indent on">${name}.js</span>
+        <span class="indent">colors.js</span>
+        <span class="indent">config.json</span>
+        <span>README.md</span>
+      </div>
+      <div class="win-editor">
+        <span class="line tint w40"></span>
+        <span class="line w72"></span>
+        <span class="line w52 indent"></span>
+        <span class="line tint w64"></span>
+        <span class="line w80"></span>
+        <span class="line w30 indent"></span>
+        <span class="line w40"></span>
+      </div>
+    </div>
+    <div class="win-status" style="background:${hex};color:${fg}">
+      <span>main*</span>
+      <span>UTF-8 · LF · JavaScript</span>
+    </div>`;
+}
+
+function showPreview(index) {
+  if (!cards.length) return;
+  cursor = (index + cards.length) % cards.length;
+  const card = cards[cursor];
+  previewFigure.style.setProperty("--c", card.hex);
+  previewFigure.style.setProperty("--fg", card.fg);
+  previewEl.innerHTML = windowMarkup(card);
+  previewHex.textContent = card.hex;
+}
+
 function render() {
-  const grid = document.getElementById("grid");
-  const cards = generate(PROJECTS.length);
+  cards = generate(PROJECTS.length);
 
   grid.innerHTML = cards
     .map(
@@ -87,9 +144,9 @@ function render() {
         const attr = command.replace(/"/g, "&quot;");
         return `
       <div class="card" style="animation-delay:${i * 18}ms">
-        <div class="bar" data-bg="${hex}" style="background:${hex};color:${fg}">
+        <button class="bar" data-view="${i}" style="background:${hex};color:${fg}" aria-label="Preview ${name}">
           ${name}
-        </div>
+        </button>
         <div class="meta">
           <span class="hex">${hex}</span>
           <span class="ratio" title="Contrast ratio between this bar and its text">${contrast(hex, fg).toFixed(1)}:1</span>
@@ -99,9 +156,33 @@ function render() {
       },
     )
     .join("");
+
+  showPreview(0);
 }
 
-document.getElementById("shuffle").addEventListener("click", render);
+function startCycle() {
+  if (reduceMotion || cycle) return;
+  cycle = setInterval(() => showPreview(cursor + 1), 3200);
+}
+
+function stopCycle() {
+  clearInterval(cycle);
+  cycle = null;
+}
+
+document.getElementById("shuffle").addEventListener("click", () => {
+  stopCycle();
+  render();
+  startCycle();
+});
+
+// Pick a project from the wall below and load it into the hero preview.
+document.addEventListener("click", (event) => {
+  const target = event.target.closest("[data-view]");
+  if (!target) return;
+  stopCycle();
+  showPreview(Number(target.dataset.view));
+});
 
 // Delegated so the buttons inside each freshly rendered card work too.
 document.addEventListener("click", async (event) => {
@@ -124,3 +205,4 @@ document.addEventListener("click", async (event) => {
 });
 
 render();
+startCycle();

@@ -67,18 +67,32 @@
 <main>
 
 <section class="hero">
-  <p class="eyebrow">a CLI, not an extension</p>
-  <h1>Peacock colors one workspace.<br><em>hue-shift colors all of them.</em></h1>
-  <p class="lede">
-    Point it at a folder. Every project inside gets its own window colour,
-    written straight into <code>.vscode/settings.json</code>.
-  </p>
+  <div class="hero-copy">
+    <p class="eyebrow">a CLI, not an extension</p>
+    <h1>Peacock colors one workspace.<br> <em>hue-shift colors<br> all of them.</em></h1>
+    <p class="lede">
+      Point it at a folder. Every project inside gets its own window colour,
+      written straight into <code>.vscode/settings.json</code>.
+    </p>
 
-  <div class="install">
-    <code id="install-cmd">npx hue-shift-cli --random</code>
-    <button class="copy" data-copy="npx hue-shift-cli --random" aria-label="Copy command">copy</button>
+    <div class="install">
+      <code id="install-cmd">npx hue-shift-cli --random</code>
+      <button class="copy" data-copy="npx hue-shift-cli --random" aria-label="Copy command">copy</button>
+    </div>
+    <p class="hint" style="margin:-24px 0 0">Package is <code>hue-shift-cli</code>; the command it installs is <code>hue-shift</code>.</p>
   </div>
-  <p class="hint" style="margin:-24px 0 34px">Package is <code>hue-shift-cli</code>; the command it installs is <code>hue-shift</code>.</p>
+
+  <figure class="preview" id="preview-figure">
+    <div class="preview-label">
+      <span class="live">live preview</span>
+      <span class="preview-hex" id="preview-hex">#6d28d9</span>
+    </div>
+    <div class="win" id="preview" aria-hidden="true"></div>
+    <figcaption class="preview-note">
+      Title bar, activity bar and status bar take the project colour.
+      Click a window below to preview it.
+    </figcaption>
+  </figure>
 
   <div class="stats">
     <div><b>75</b><span>projects</span></div>
@@ -90,13 +104,13 @@
 
 <section id="demo" class="demo">
   <div class="demo-head">
-    <h2>What it looks like</h2>
+    <h2>Every project at once</h2>
     <div class="demo-actions">
       <button class="shuffle" id="shuffle">shuffle colours</button>
       <button class="shuffle" data-copy="npx hue-shift-cli --root ~/projects --random --seed 42" data-label="copy command" title="npx hue-shift-cli --root ~/projects --random --seed 42">copy command</button>
     </div>
   </div>
-  <p class="hint">Eighteen projects, eighteen hues. The bar under each name is the colour VS Code paints its title bar.</p>
+  <p class="hint">Eighteen projects, eighteen hues, one pass. Each bar is the colour VS Code paints that window's title bar. Click one to load it into the preview above.</p>
   <div class="grid" id="grid"></div>
   <p class="hint" style="margin-top:18px">
     The number next to each hex is the contrast ratio between the bar and its text. Black or white is picked
