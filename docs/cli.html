@@ -58,9 +58,13 @@
   .doc strong { color: var(--ink); }
   .doc code { background: #161a22; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 0.9em; color: var(--ink); }
   .doc pre code { background: none; border: 0; padding: 0; }
-  .doc table { font-size: 14px; }
-  .doc td { white-space: normal; }
-  .doc td code { white-space: nowrap; }
+  .doc table { font-size: 14px; min-width: 0; }
+  .keys-scroll { overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  .keys-scroll::-webkit-scrollbar { height: 6px; }
+  .keys-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+  .keys-scroll::-webkit-scrollbar-track { background: transparent; }
+  .doc td { white-space: normal; overflow-wrap: anywhere; }
+  .doc td code { white-space: normal; overflow-wrap: anywhere; }
 
   .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 0; }
   .toc a {
@@ -120,30 +124,122 @@
   .seed-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; }
   .seed-row .mini { margin: 0; padding: 8px 11px; }
 
-  .preview-wrap { border-top: 1px solid var(--line); padding: 18px 20px 20px; background: var(--bg-soft); }
-  .preview-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 10px; }
-  .preview {
-    border: 1px solid var(--line); border-radius: 9px; overflow: hidden;
-    max-width: 520px; font-family: var(--sans); font-size: 12px;
+  .preview-wrap { border-top: 1px solid var(--line); padding: 20px 20px 30px; background: var(--bg-soft); }
+  .pv-label {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-dim); margin-bottom: 14px;
   }
-  .pv-title { padding: 7px 12px; font-weight: 600; display: flex; justify-content: space-between; }
-  .pv-title small { font-family: var(--mono); font-weight: 400; opacity: 0.7; }
-  .pv-border { height: 2px; background: transparent; }
-  .pv-body { display: grid; grid-template-columns: 34px 104px 1fr; min-height: 104px; }
-  .pv-activity { display: flex; flex-direction: column; gap: 7px; align-items: center; padding: 10px 0; }
-  .pv-activity i { width: 14px; height: 14px; border-radius: 3px; background: currentColor; opacity: 0.55; }
+  .pv-live { display: inline-flex; align-items: center; gap: 8px; }
+  .pv-live::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: #34d399; animation: pv-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pv-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
+    50% { box-shadow: 0 0 0 5px rgba(52, 211, 153, 0); }
+  }
+  .pv-hex { font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; text-transform: none; color: var(--ink); }
+
+  .preview-stage { position: relative; max-width: 700px; margin: 0 auto; perspective: 1200px; perspective-origin: 50% 20%; }
+  .preview-stage::after {
+    content: ""; position: absolute; z-index: 0; left: 7%; right: 7%; bottom: -24px; height: 46px;
+    background: radial-gradient(50% 100% at 50% 0%, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0) 72%);
+    filter: blur(14px); pointer-events: none;
+  }
+  .pv-window {
+    position: relative; z-index: 1;
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    background: #0b0d12; font-family: var(--sans); font-size: 12px;
+    transform: rotateX(3deg) rotateY(-7deg);
+    transform-origin: 50% 40%;
+    box-shadow:
+      0 46px 80px -34px color-mix(in srgb, var(--c, #000) 55%, #000),
+      0 18px 40px -22px rgba(0, 0, 0, 0.8),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  }
+  .pv-window:hover { transform: none; }
+
+  .pv-title {
+    position: relative; display: flex; align-items: center; height: 34px; padding: 0 12px;
+    background: #151922; font-size: 11.5px; font-weight: 600;
+  }
+  .pv-dots { display: flex; gap: 5px; flex: none; z-index: 1; }
+  .pv-dots i { width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18); }
+  .pv-dots i:nth-child(1) { background: #ff5f57; }
+  .pv-dots i:nth-child(2) { background: #febc2e; }
+  .pv-dots i:nth-child(3) { background: #28c840; }
+  .pv-name {
+    position: absolute; left: 50%; transform: translateX(-50%); max-width: calc(100% - 150px);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .pv-hex {
+    flex: none; font-family: var(--mono); font-size: 10.5px; font-weight: 400;
+  }
+
+  .pv-tabs { display: flex; height: 30px; background: #0b0d12; border-bottom: 1px solid rgba(255, 255, 255, 0.05); overflow: hidden; }
+  .pv-tab {
+    display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; min-width: 0;
+    font-family: var(--mono); font-size: 10.5px; color: #6f798b;
+    border-right: 1px solid rgba(255, 255, 255, 0.04); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .pv-tab.on { background: #0d1016; }
+  .pv-tab b { font-weight: 400; opacity: 0.45; }
+
+  .pv-body { display: grid; grid-template-columns: 42px 132px 1fr; min-height: 176px; }
+  .pv-activity {
+    display: flex; flex-direction: column; align-items: center; gap: 17px;
+    padding: 13px 0; background: #151922; color: #778294;
+  }
+  .pv-activity svg { width: 15px; height: 15px; opacity: 0.62; }
+  .pv-activity svg:first-child { opacity: 0.95; }
+
   .pv-sidebar {
-    padding: 9px 10px; border-right: 2px solid transparent;
-    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+    padding: 11px 8px 11px 11px; border-right: 1px solid transparent;
+    background: #151922; color: #7d8798; overflow: hidden;
+    font-family: var(--mono); font-size: 10.5px;
   }
-  .pv-editor { background: #0d1016; display: flex; flex-direction: column; }
-  .pv-tab { padding: 6px 10px; font-family: var(--mono); font-size: 11px; align-self: flex-start; }
-  .pv-code { padding: 10px 12px; color: #3f4757; font-family: var(--mono); font-size: 10.5px; line-height: 1.9; }
-  .pv-code b { display: block; width: 62%; height: 4px; border-radius: 2px; background: #1d222c; margin: 4px 0; }
-  .pv-status { padding: 4px 10px; font-family: var(--mono); font-size: 10px; display: flex; justify-content: space-between; }
+  .pv-head { display: block; font-size: 9px; letter-spacing: 0.12em; opacity: 0.66; margin-bottom: 9px; }
+  .pv-folder, .pv-file { display: flex; align-items: center; gap: 6px; white-space: nowrap; padding: 2px 4px; border-radius: 3px; }
+  .pv-folder { opacity: 0.84; }
+  .pv-file { opacity: 0.78; }
+  .pv-file.on { opacity: 1; background: color-mix(in srgb, currentColor 12%, transparent); }
+  .pv-file.indent { padding-left: 12px; }
+  .fi { width: 7px; height: 7px; border-radius: 2px; background: currentColor; opacity: 0.45; flex: none; }
+
+  .pv-editor { display: flex; background: #0d1016; }
+  .pv-code {
+    flex: 1; display: grid; grid-template-columns: 22px 1fr; column-gap: 10px;
+    align-content: start; padding: 12px 10px 12px 8px;
+  }
+  .ln { font-family: var(--mono); font-size: 9.5px; line-height: 18px; color: #3f4757; text-align: right; }
+  .ls { height: 5px; margin: 6.5px 0; border-radius: 3px; background: #1d222c; }
+  .ls.w35 { width: 35%; }
+  .ls.w45 { width: 45%; }
+  .ls.w55 { width: 55%; }
+  .ls.w62 { width: 62%; }
+  .ls.w70 { width: 70%; }
+  .ls.w78 { width: 78%; }
+  .ls.w88 { width: 88%; }
+
+  .pv-minimap { width: 36px; padding: 12px 7px; display: flex; flex-direction: column; gap: 3px; opacity: 0.55; }
+  .pv-minimap i { height: 2px; border-radius: 1px; background: #2a3140; }
+  .pv-minimap i:nth-child(3n) { width: 62%; }
+  .pv-minimap i:nth-child(4n) { width: 84%; }
+
+  .pv-status {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 26px; padding: 0 12px; background: #151922; color: #4c5566;
+    font-family: var(--mono); font-size: 10px;
+  }
 
   .builder-out { border-top: 1px solid var(--line); padding: 16px 20px; display: flex; gap: 12px; align-items: center; background: #0d1016; }
-  .builder-out code { flex: 1; background: none; border: 0; padding: 0; font-size: 14px; overflow-x: auto; white-space: nowrap; color: var(--ink); }
+  .builder-out code { flex: 1; background: none; border: 0; padding: 0; font-size: 14px; overflow-x: auto; white-space: nowrap; color: var(--ink); scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  .builder-out code::-webkit-scrollbar { height: 6px; }
+  .builder-out code::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+  .builder-out code::-webkit-scrollbar-track { background: transparent; }
   .builder-out button {
     border: 1px solid var(--line); background: transparent; color: var(--ink-dim);
     font-family: var(--mono); font-size: 12px; padding: 7px 14px; border-radius: 7px; cursor: pointer; flex: none;
@@ -162,6 +258,12 @@
 
   @media (max-width: 720px) {
     .builder-grid { grid-template-columns: 1fr; }
+    .pv-window { transform: none; }
+    .pv-body { grid-template-columns: 38px 112px 1fr; }
+    .pv-minimap { display: none; }
+  }
+  @media (max-width: 420px) {
+    .pv-tab:not(.on) { display: none; }
   }
 </style>
 </head>
@@ -186,8 +288,8 @@
   <div class="toc">
     <a href="#builder">builder</a>
     <a href="#targets">targets</a>
-    <a href="#colour">colour</a>
-    <a href="#parts">parts</a>
+    <a href="#colour-section">colour</a>
+    <a href="#parts-section">parts</a>
     <a href="#adjust">adjust</a>
     <a href="#modes">modes</a>
     <a href="#config">config</a>
@@ -297,8 +399,8 @@
           <option value="Nord">
           <option value="Catppuccin Mocha">
         </datalist>
-        <input type="text" id="icons" list="icons" placeholder="also set icons (optional)" aria-label="Icon theme">
-        <datalist id="icons">
+        <input type="text" id="icons" list="icon-themes" placeholder="also set icons (optional)" aria-label="Icon theme">
+        <datalist id="icon-themes">
           <option value="Seti">
           <option value="Material Icon Theme">
           <option value="vscode-icons">
@@ -349,19 +451,56 @@
     </div>
 
     <div class="preview-wrap">
-      <div class="preview-label">live preview</div>
-      <div class="preview">
-        <div class="pv-title" id="pv-title"><span>checkout-api</span><small>hue-shift</small></div>
-        <div class="pv-border" id="pv-border"></div>
-        <div class="pv-body">
-          <div class="pv-activity" id="pv-activity"><i></i><i></i><i></i><i></i></div>
-          <div class="pv-sidebar" id="pv-sidebar">EXPLORER</div>
-          <div class="pv-editor">
-            <div class="pv-tab" id="pv-tab">index.js</div>
-            <div class="pv-code"><b></b><b></b><b></b><b></b></div>
+      <div class="pv-label">
+        <span class="pv-live">live preview</span>
+        <span class="pv-hex" id="pv-hex">#6d28d9</span>
+      </div>
+      <div class="preview-stage">
+        <div class="pv-window" id="preview">
+          <div class="pv-title" id="pv-title">
+            <span class="pv-dots"><i></i><i></i><i></i></span>
+            <span class="pv-name">checkout-api — Visual Studio Code</span>
           </div>
+          <div class="pv-tabs">
+            <span class="pv-tab on" id="pv-tab">checkout-api.js <b>&times;</b></span>
+            <span class="pv-tab">index.html</span>
+            <span class="pv-tab">README.md</span>
+          </div>
+          <div class="pv-body">
+            <div class="pv-activity" id="pv-activity">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 1.5h-5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V4.5z"/><path d="M9.5 1.5v3h3"/></svg>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="4.5" cy="3.5" r="1.6"/><circle cx="4.5" cy="12.5" r="1.6"/><circle cx="11.5" cy="6" r="1.6"/><path d="M4.5 5.1v5.8M6.1 8h3.2a1.7 1.7 0 0 0 1.7-1.7v-.4"/></svg>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><path d="M9.5 9.5h4v4"/></svg>
+            </div>
+            <div class="pv-sidebar" id="pv-sidebar">
+              <b class="pv-head">EXPLORER</b>
+              <span class="pv-folder"><i class="fi"></i>src</span>
+              <span class="pv-file on indent"><i class="fi"></i>checkout-api.js</span>
+              <span class="pv-file indent"><i class="fi"></i>colors.js</span>
+              <span class="pv-file indent"><i class="fi"></i>config.json</span>
+              <span class="pv-folder"><i class="fi"></i>.vscode</span>
+              <span class="pv-file"><i class="fi"></i>README.md</span>
+            </div>
+            <div class="pv-editor">
+              <div class="pv-code">
+                <span class="ln">1</span><span class="ls w62"></span>
+                <span class="ln">2</span><span class="ls w35"></span>
+                <span class="ln">3</span><span class="ls w78"></span>
+                <span class="ln">4</span><span class="ls w45"></span>
+                <span class="ln">5</span><span class="ls w88"></span>
+                <span class="ln">6</span><span class="ls w55"></span>
+                <span class="ln">7</span><span class="ls w70"></span>
+                <span class="ln">8</span><span class="ls w35"></span>
+              </div>
+              <div class="pv-minimap" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+            </div>
+          </div>
+          <div class="pv-status" id="pv-status"><span>main*</span><span>UTF-8 · LF · JavaScript</span></div>
         </div>
-        <div class="pv-status" id="pv-status"><span>main*</span><span>UTF-8</span></div>
       </div>
     </div>
 
@@ -426,7 +565,7 @@ npx hue-shift-cli --random</code></pre>
 </section>
 
 <!-- ============ COLOUR ============ -->
-<section id="colour">
+<section id="colour-section">
   <h2>Choosing a colour</h2>
 
   <h3>Random, but never muddy</h3>
@@ -455,6 +594,7 @@ npx hue-shift-cli . --color teal</code></pre>
   <h3>The built-in palette</h3>
   <pre><code>npx hue-shift-cli --list-colors
 npx hue-shift-cli --list-colors --json</code></pre>
+  <div class="keys-scroll">
   <table class="keys">
     <tr><th>Name</th><th>Hex</th><th>Name</th><th>Hex</th></tr>
     <tr><td>amber</td><td>#b45309</td><td>magenta</td><td>#a21caf</td></tr>
@@ -468,6 +608,7 @@ npx hue-shift-cli --list-colors --json</code></pre>
     <tr><td>svelte-orange</td><td>#ff3d00</td><td>teal</td><td>#0f766e</td></tr>
     <tr><td>violet</td><td>#6d28d9</td><td>vue-green</td><td>#42b883</td></tr>
   </table>
+  </div>
 
   <h3>Popular editor palettes</h3>
   <p>
@@ -490,7 +631,7 @@ npx hue-shift-cli --list-colors --json</code></pre>
 </section>
 
 <!-- ============ PARTS ============ -->
-<section id="parts">
+<section id="parts-section">
   <h2>Which parts of the window</h2>
   <pre><code>npx hue-shift-cli . --color teal --parts title,status</code></pre>
   <p>Default is <code>title,activity,status</code>. Each part owns a fixed set of keys:</p>
@@ -534,7 +675,7 @@ npx hue-shift-cli --list-colors --json</code></pre>
 </section>
 
 <!-- ============ EXCLUDE ============ -->
-<section id="exclude">
+<section id="exclude-section">
   <h2>Leaving one key alone</h2>
   <pre><code>npx hue-shift-cli . --color teal --exclude statusBar.noFolderBackground
 npx hue-shift-cli . --color teal \
@@ -547,7 +688,7 @@ npx hue-shift-cli . --color teal \
 </section>
 
 <!-- ============ THEME ============ -->
-<section id="theme">
+<section id="theme-section">
   <h2>Theme and icons</h2>
   <pre><code>npx hue-shift-cli . --color teal \
   --theme "Default Dark Modern" --icons Seti</code></pre>
@@ -718,6 +859,7 @@ npx hue-shift-cli packages/api packages/web packages/admin --random --seed 7</co
 <!-- ============ FLAGS ============ -->
 <section id="flags">
   <h2>All flags</h2>
+  <div class="keys-scroll">
   <table class="keys">
     <tr><th>Flag</th><th>Value</th><th>What it does</th></tr>
     <tr><td>--root</td><td>dir</td><td>Treat every subfolder of <code>dir</code> as a project. Repeatable.</td></tr>
@@ -739,6 +881,7 @@ npx hue-shift-cli packages/api packages/web packages/admin --random --seed 7</co
     <tr><td>-h, --help</td><td>—</td><td>Usage text.</td></tr>
     <tr><td>-v, --version</td><td>—</td><td>Print the version.</td></tr>
   </table>
+  </div>
   <p><code>--check</code> and <code>--reset</code> cannot be combined. <code>--restore</code> cannot be combined with either.</p>
 </section>
 
@@ -1003,24 +1146,28 @@ function paintPreview(parsed) {
   const base = active ? toHex(parsed) : null;
   const pct = Number(state.pct) || 0;
 
-  const paint = (id, part) => {
+  const paint = (id, part, off = "#4c5566") => {
     const el = $(id);
     const on = active && state.parts.has(part);
     const hex = on ? adjustHex(base, state.adjust[part] || "none", pct) : "#151922";
     el.style.background = hex;
-    el.style.color = on ? readable(hex) : "#4c5566";
+    el.style.color = on ? readable(hex) : off;
   };
 
   paint("pv-title", "title");
   paint("pv-activity", "activity");
   paint("pv-sidebar", "sidebar");
-  paint("pv-tab", "tab");
+  paint("pv-tab", "tab", "#c3cbd9");
   paint("pv-status", "status");
 
+  $("preview").style.setProperty("--c", base || "#151922");
   const borderOn = active && state.parts.has("border");
-  $("pv-border").style.background = borderOn ? adjustHex(base, state.adjust.border || "none", pct) : "transparent";
+  $("preview").style.borderColor = borderOn
+    ? adjustHex(base, state.adjust.border || "none", pct)
+    : "var(--line)";
   $("pv-sidebar").style.borderRightColor =
     active && state.parts.has("sash") ? adjustHex(base, state.adjust.sash || "none", pct) : "transparent";
+  $("pv-hex").textContent = base ? base : "no colour";
 }
 
 function note() {

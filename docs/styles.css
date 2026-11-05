@@ -207,8 +207,11 @@ h2 {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--fg) 38%, transparent);
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18);
 }
+.dots i:nth-child(1) { background: #ff5f57; }
+.dots i:nth-child(2) { background: #febc2e; }
+.dots i:nth-child(3) { background: #28c840; }
 .win-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.94; }
 
 .win-tabs {
@@ -247,11 +250,11 @@ h2 {
   width: 13px;
   height: 13px;
   border-radius: 3px;
-  background: color-mix(in srgb, var(--ink) 17%, transparent);
+  background: color-mix(in srgb, var(--fg) 32%, transparent);
 }
 .win-activity i.on {
-  background: var(--c);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--c) 65%, transparent);
+  background: var(--fg);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--fg) 55%, transparent);
 }
 
 .win-side {
